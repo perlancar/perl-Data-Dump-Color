@@ -1,6 +1,6 @@
 Revision history for Data-Dump-Color
 
-0.03     2012-07-10 (SHARYANTO)
+0.03     2012-07-10 (SHARYANTO) (not yet released)
 
          Reimplement from using filter to using a modified Data::Dump 1.21.
 
