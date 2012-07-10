@@ -1,10 +1,15 @@
 Revision history for Data-Dump-Color
 
-0.02     2012-07-03
+0.03     2012-07-10 (SHARYANTO)
+
+         Reimplement from using filter to using a modified Data::Dump 1.21.
+
+
+0.02     2012-07-03 (SHARYANTO)
 
          No functional changes. Add missing dep to Exporter-Lite.
 
 
-0.01     2012-06-27
+0.01     2012-06-27 (SHARYANTO)
 
          First release.
