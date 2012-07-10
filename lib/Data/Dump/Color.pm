@@ -1,4 +1,4 @@
-package Data::Dump;
+package Data::Dump::Color;
 
 use strict;
 use vars qw(@EXPORT @EXPORT_OK $VERSION $DEBUG);
@@ -13,10 +13,28 @@ $VERSION = "1.21";
 $DEBUG = 0;
 
 use overload ();
-use vars qw(%seen %refcnt @dump @fixup %require $TRY_BASE64 @FILTERS $INDENT);
+use vars qw(%seen %refcnt @dump @fixup %require $TRY_BASE64 @FILTERS $INDENT %COLORS);
+
+use Term::ANSIColor;
 
 $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
+
+%COLORS = (
+    Regexp  => 'yellow',
+    undef   => 'bright_red',
+    number  => 'bright_blue',
+    string  => 'bright_yellow',
+    object  => 'bright_green',
+    glob    => 'bright_cyan',
+    key     => 'magenta',
+    comment => 'green',
+);
+my $_colreset = color('reset');
+sub _col {
+    my ($col, $str) = @_;
+    color($COLORS{$col}) . $str . $_colreset;
+}
 
 sub dump
 {
@@ -220,7 +238,7 @@ sub _dump
 		}
 		$v =~ s/\Q$sep\E/\\$sep/g;
 
-		$out = "qr$sep$v$sep$mod";
+		$out = _col('Regexp', "qr$sep$v$sep$mod");
 		undef($class);
 	    }
 	    else {
@@ -230,20 +248,20 @@ sub _dump
 	    }
 	} else {
 	    if (!defined $$rval) {
-		$out = "undef";
+		$out = _col('undef', "undef");
 	    }
 	    elsif (do {no warnings 'numeric'; $$rval + 0 eq $$rval}) {
-		$out = $$rval;
+		$out = _col(number => $$rval);
 	    }
 	    else {
-		$out = str($$rval);
+		$out = _col(string => str($$rval));
 	    }
 	    if ($class && !@$idx) {
 		# Top is an object, not a reference to one as perl needs
 		$refcnt{$name}++;
 		my $obj = fullname($name, $idx);
 		my $cl  = quote($class);
-		push(@fixup, "bless \\$obj, $cl");
+		push(@fixup, _col(object => "bless \\$obj, $cl"));
 	    }
 	}
     }
@@ -254,11 +272,11 @@ sub _dump
 	    $out = "\\$val";
 	    if ($out =~ /^\\\*Symbol::/) {
 		$require{Symbol}++;
-		$out = "Symbol::gensym()";
+		$out = _col(glob => "Symbol::gensym()");
 	    }
 	} else {
 	    my $val = "$$rval";
-	    $out = "$$rval";
+	    $out = _col(glob => "$$rval");
 
 	    for my $k (qw(SCALAR ARRAY HASH)) {
 		my $gval = *$$rval{$k};
@@ -356,7 +374,7 @@ sub _dump
 	$out = "{$nl";
 	$out .= "$INDENT# $tied$nl" if $tied;
 	while (@keys) {
-	    my $key = shift @keys;
+	    my $key = _col(key => shift(@keys));
 	    my $val = shift @vals;
 	    my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
 	    $val =~ s/\n/\n$vpad/gm;
@@ -375,16 +393,17 @@ sub _dump
     }
     else {
 	warn "Can't handle $type data";
-	$out = "'#$type#'";
+	$out = _col(comment => "'#$type#'");
     }
 
     if ($class && $ref) {
-	$out = "bless($out, " . quote($class) . ")";
+	$out = "bless($out, " . _col(string => quote($class)) . ")";
     }
     if ($comment) {
 	$comment =~ s/^/# /gm;
 	$comment .= "\n" unless $comment =~ /\n\z/;
 	$comment =~ s/^#[ \t]+\n/\n/;
+        $comment = _col(comment => $comment);
 	$out = "$comment$out";
     }
     return $out;
@@ -558,19 +577,22 @@ __END__
 
 =head1 NAME
 
-Data::Dump - Pretty printing of data structures
+Data::Dump::Color - Like Data::Dump, but with color
 
 =head1 SYNOPSIS
 
- use Data::Dump qw(dump);
+ use Data::Dump::Color qw(dump);
 
  $str = dump(@list);
  @copy_of_list = eval $str;
 
  # or use it for easy debug printout
- use Data::Dump; dd localtime;
+ use Data::Dump::Color; dd localtime;
 
 =head1 DESCRIPTION
+
+This module is a modified L<Data::Dump>, it adds colors to dumps. The rest of
+this documentation is Data::Dump's.
 
 This module provide a few functions that traverse their
 argument and produces a string as its result.  The string contains
@@ -664,17 +686,21 @@ these.
 
 =over
 
-=item $Data::Dump::INDENT
+=item $Data::Dump::Color::INDENT
 
 This holds the string that's used for indenting multiline data structures.
 It's default value is "  " (two spaces).  Set it to "" to suppress indentation.
 Setting it to "| " makes for nice visuals even if the dump output then fails to
 be valid Perl.
 
-=item $Data::Dump::TRY_BASE64
+=item $Data::Dump::Color::TRY_BASE64
 
 How long must a binary string be before we try to use the base64 encoding
 for the dump output.  The default is 50.  Set it to 0 to disable base64 dumps.
+
+=item %Data::Dump::Color::COLORS
+
+Define colors.
 
 =back
 
