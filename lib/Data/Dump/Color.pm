@@ -572,12 +572,7 @@ sub quote {
 }
 
 1;
-
-__END__
-
-=head1 NAME
-
-Data::Dump::Color - Like Data::Dump, but with color
+# ABSTRACT: Like Data::Dump, but with color
 
 =head1 SYNOPSIS
 
@@ -735,7 +730,7 @@ returns C<'(1, 2, 3)'>.
 L<Data::Dump::Filtered>, L<Data::Dump::Trace>, L<Data::Dumper>, L<JSON>,
 L<Storable>
 
-=head1 AUTHORS
+=head1 ORIGINAL AUTHORS
 
 The C<Data::Dump> module is written by Gisle Aas <gisle@aas.no>, based
 on C<Data::Dumper> by Gurusamy Sarathy <gsar@umich.edu>.
