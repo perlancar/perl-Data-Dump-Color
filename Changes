@@ -1,5 +1,11 @@
 Revision history for Data-Dump-Color
 
+0.05     2012-10-23 (SHARYANTO)
+
+         Allow turning color output on/off via $COLOR configuration or COLOR
+         environment.
+
+
 0.04     2012-08-08 (SHARYANTO)
 
          No functional changes. Fix Abstract.
