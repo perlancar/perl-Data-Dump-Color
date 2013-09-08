@@ -377,12 +377,13 @@ sub _dump
 	$out = "{$nl";
 	$out .= "$INDENT# $tied$nl" if $tied;
 	while (@keys) {
-	    my $key = _col(key => shift(@keys));
+	    my $key = shift(@keys);
 	    my $val = shift @vals;
 	    my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
 	    $val =~ s/\n/\n$vpad/gm;
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
+            $key = _col(key => $key);
 	    $out .= "$kpad$key => $val,$nl";
 	}
 	$out =~ s/,$/ / unless $nl;
