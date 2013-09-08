@@ -1,26 +1,34 @@
 Revision history for Data-Dump-Color
 
+0.06     2013-09-08 (SHARYANTO)
+
+         [BUG FIXES]
+
+         - Fix misaligned hash keys because I colored hash keys too early
+           (reported by Scott Baker).
+
+
 0.05     2012-10-23 (SHARYANTO)
 
-         Allow turning color output on/off via $COLOR configuration or COLOR
-         environment.
+         - Allow turning color output on/off via $COLOR configuration or COLOR
+           environment.
 
 
 0.04     2012-08-08 (SHARYANTO)
 
-         No functional changes. Fix Abstract.
+         - No functional changes. Fix Abstract.
 
 
 0.03     2012-07-10 (SHARYANTO)
 
-         Reimplement from using filter to using a modified Data::Dump 1.21.
+         - Reimplement from using filter to using a modified Data::Dump 1.21.
 
 
 0.02     2012-07-03 (SHARYANTO)
 
-         No functional changes. Add missing dep to Exporter-Lite.
+         - No functional changes. Add missing dep to Exporter-Lite.
 
 
 0.01     2012-06-27 (SHARYANTO)
 
-         First release.
+         - First release.

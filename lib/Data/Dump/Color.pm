@@ -1,6 +1,6 @@
 package Data::Dump::Color;
 
-use 5.010;
+use 5.010001;
 use strict;
 use vars qw(@EXPORT @EXPORT_OK $VERSION $DEBUG);
 use subs qq(dump);
@@ -577,6 +577,8 @@ sub quote {
 
 1;
 # ABSTRACT: Like Data::Dump, but with color
+
+=for Pod::Coverage .+
 
 =head1 SYNOPSIS
 
