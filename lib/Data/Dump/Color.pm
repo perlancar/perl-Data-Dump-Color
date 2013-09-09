@@ -503,8 +503,8 @@ sub format_list
 	for (@elem) { s/^/$INDENT/gm; }
 	my @res = ("\n", $comment ? "$INDENT# $comment\n" : "");
         for my $i (0..$#elem) {
-            push @res, $elem[$i],
-                _col(comment=>", # ".("." x $extra->[0])."[$i]"), "\n";
+            push @res, $elem[$i], ", ",
+                _col(comment => "# ".("." x $extra->[0])."[$i]"), "\n";
         }
         join("", @res);
     } else {
