@@ -1,5 +1,13 @@
 Revision history for Data-Dump-Color
 
+0.08     2013-09-10 (SHARYANTO)
+
+         - Fix minor color bug.
+
+         - Rebuild with MakeMaker instead of Module::Build because the latter is
+           deprecated in Perl 5.19.
+
+
 0.07     2013-09-10 (SHARYANTO)
 
          [ENHANCEMENTS]
