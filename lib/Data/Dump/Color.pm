@@ -84,7 +84,8 @@ sub dump
     my $paren = (@dump != 1);
     $out .= "(" if $paren;
     $out .= format_list($paren, undef,
-			map {defined($_->[1]) ? $_->[1] : "\$".$_->[0]}
+			[0],
+                        map {defined($_->[1]) ? $_->[1] : "\$".$_->[0]}
 			    @dump
 		       );
     $out .= ")" if $paren;
@@ -302,7 +303,7 @@ sub _dump
 	    push(@vals, _dump($v, $name, [@$idx, "[$i]"], $tied, $pclass, $pidx));
 	    $i++;
 	}
-	$out = "[" . format_list(1, $tied, @vals) . "]";
+	$out = "[" . format_list(1, $tied, [scalar(@$idx)], @vals) . "]";
     }
     elsif ($type eq "HASH") {
 	my(@keys, @vals);
@@ -386,7 +387,8 @@ sub _dump
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
             $key = _col(key => $key);
 	    $out .= "$kpad$key => $val," .
-                ($nl ? _col(comment => " # {$i}") : "") . $nl;
+                ($nl ? _col(comment => " # ".("." x (@$idx-1))."{$i}") : "") .
+                    $nl;
             $i++;
 	}
 	$out =~ s/,$/ / unless $nl;
@@ -465,6 +467,7 @@ sub format_list
 {
     my $paren = shift;
     my $comment = shift;
+    my $extra = shift; # [level, ]
     my $indent_lim = $paren ? 0 : 1;
     if (@_ > 3) {
 	# can we use range operator to shorten the list?
@@ -500,7 +503,8 @@ sub format_list
 	for (@elem) { s/^/$INDENT/gm; }
 	my @res = ("\n", $comment ? "$INDENT# $comment\n" : "");
         for my $i (0..$#elem) {
-            push @res, $elem[$i], _col(comment=>", # [$i]"), "\n";
+            push @res, $elem[$i],
+                _col(comment=>", # ".("." x $extra->[0])."[$i]"), "\n";
         }
         join("", @res);
     } else {
