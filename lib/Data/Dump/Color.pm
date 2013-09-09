@@ -376,7 +376,8 @@ sub _dump
 	}
 	$out = "{$nl";
 	$out .= "$INDENT# $tied$nl" if $tied;
-	while (@keys) {
+	my $i = 0;
+        while (@keys) {
 	    my $key = shift(@keys);
 	    my $val = shift @vals;
 	    my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
@@ -384,7 +385,9 @@ sub _dump
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
             $key = _col(key => $key);
-	    $out .= "$kpad$key => $val,$nl";
+	    $out .= "$kpad$key => $val," .
+                ($nl ? _col(comment => " # {$i}") : "") . $nl;
+            $i++;
 	}
 	$out =~ s/,$/ / unless $nl;
 	$out .= "}";
@@ -495,8 +498,11 @@ sub format_list
     if ($comment || (@_ > $indent_lim && (length($tmp) > 60 || $tmp =~ /\n/))) {
 	my @elem = @_;
 	for (@elem) { s/^/$INDENT/gm; }
-	return "\n" . ($comment ? "$INDENT# $comment\n" : "") .
-               join(",\n", @elem, "");
+	my @res = ("\n", $comment ? "$INDENT# $comment\n" : "");
+        for my $i (0..$#elem) {
+            push @res, $elem[$i], _col(comment=>", # [$i]"), "\n";
+        }
+        join("", @res);
     } else {
 	return join(", ", @_);
     }
