@@ -15,7 +15,7 @@ $DEBUG = 0;
 
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
-use vars qw(%COLORS $COLOR $INDEX $ALIGN_INDEX);
+use vars qw(%COLORS $COLOR $INDEX);
 
 use Term::ANSIColor;
 require Win32::Console::ANSI if $^O =~ /Win/;
@@ -23,7 +23,6 @@ require Win32::Console::ANSI if $^O =~ /Win/;
 $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
 $INDEX = 1 unless defined $INDEX;
-$ALIGN_INDEX = 0 unless defined $ALIGN_INDEX;
 
 %COLORS = (
     Regexp  => 'yellow',
@@ -449,8 +448,7 @@ sub _dump
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
             my ($vlastline) = $val =~ /(.*)\z/;
-            say "maxvlen=$maxvlen";
-            my $cpad = $ALIGN_INDEX ? " " x ($maxvlen - length($vlastline)) : "";
+            my $cpad = " " x ($maxvlen - length($vlastline));
             my $idxcomment = $cpad . "# ".("." x (@$idx-1))."{$i}";
 	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $idxcomment" : "") . $nl;
 	    $cout .= "$kpad"._col(key=>$key)." => $cval,".($nl && $INDEX ? " "._col(comment => $idxcomment) : "") . $nl;
@@ -600,7 +598,7 @@ sub format_list
 	for (@celem) { s/^/$INDENT/gm; }
         for my $i (0..$#elem) {
             my ($vlastline) = $elem[$i] =~ /(.*)\z/;
-            my $cpad = $ALIGN_INDEX ? " " x ($maxvlen - length($vlastline)) : "";
+            my $cpad = " " x ($maxvlen - length($vlastline));
             my $idxcomment = "# ".("." x $extra->[0])."[$i]";
             push @res , $elem[ $i], ",", ($INDEX ? " $cpad$idxcomment" : ""), "\n";
             push @cres, $celem[$i], ",", ($INDEX ? " $cpad"._col(comment => $idxcomment) : ""), "\n";
@@ -709,16 +707,16 @@ By default Data::Dump::Color shows array indexes or hash pair sequence in
 comments for visual aid, e.g.:
 
  [
-   "this", # [0]
-   "is", # [1]
-   "a", # [2]
+   "this",      # [0]
+   "is",        # [1]
+   "a",         # [2]
    "5-element", # [3]
    "array", # [4]
    {
-     0 => "with", # .{0}
-     1 => "an", # .{1}
+     0 => "with",  # .{0}
+     1 => "an",    # .{1}
      2 => "extra", # .{2}
-     3 => "hash", # .{3}
+     3 => "hash",  # .{3}
    },
  ]
 
@@ -740,8 +738,6 @@ To turn this off, set C<$INDEX> to 0:
      3 => "hash",
    },
  ]
-
-To line up the visual aid, set C<$ALIGN_INDEX> to 1.
 
 
 =head1 VARIABLES
@@ -767,10 +763,6 @@ Define colors.
 =item $INDEX => BOOL (default: 1)
 
 Whether to add array/hash index visual aid.
-
-=item $ALIGN_INDEX => BOOL (default: 0)
-
-Whether to align array/hash index visual aid.
 
 =back
 

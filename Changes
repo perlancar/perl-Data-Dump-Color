@@ -15,9 +15,7 @@ Revision history for Data-Dump-Color
            messes up the calculation (an alternative would be to calculate
            against color-stripped text, but that is probably slower still).
 
-         - Allow array/hash index comment to be turned off via $INDEX=0.
-
-         - Allow array/hash index comment to be aligned off via $ALIGN_INDEX=1.
+         - Add option to turn off array/hash index comment ($INDEX=0).
 
 
 0.08     2013-09-10 (SHARYANTO)
