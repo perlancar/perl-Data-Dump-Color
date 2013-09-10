@@ -18,6 +18,7 @@ use vars qw(%seen %refcnt @dump @fixup %require $TRY_BASE64 @FILTERS $INDENT %CO
 use vars qw($COLOR);
 
 use Term::ANSIColor;
+require Win32::Console::ANSI if $^O =~ /Win/;
 
 $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
