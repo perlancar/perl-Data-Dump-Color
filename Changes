@@ -1,6 +1,6 @@
 Revision history for Data-Dump-Color
 
-0.09     2013-09-10 (SHARYANTO) (not yet released)
+0.09     2013-09-10 (SHARYANTO)
 
          - Remove original Data::Dump documentation. This module's docs now only
            explains what's different from Data::Dump.
