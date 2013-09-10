@@ -449,7 +449,7 @@ sub _dump
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
             my ($vlastline) = $val =~ /(.*)\z/;
             my $cpad = " " x ($maxvlen - length($vlastline));
-            my $idxcomment = $cpad . "# ".("." x (@$idx-1))."{$i}";
+            my $idxcomment = $cpad . "# ".("." x @$idx)."{$i}";
 	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $idxcomment" : "") . $nl;
 	    $cout .= "$kpad"._col(key=>$key)." => $cval,".($nl && $INDEX ? " "._col(comment => $idxcomment) : "") . $nl;
             $i++;
@@ -711,13 +711,16 @@ comments for visual aid, e.g.:
    "is",        # [1]
    "a",         # [2]
    "5-element", # [3]
-   "array", # [4]
+   "array",     # [4]
    {
-     0 => "with",  # .{0}
-     1 => "an",    # .{1}
-     2 => "extra", # .{2}
-     3 => "hash",  # .{3}
-   },
+     0  => "with",  # .{0}
+     1  => "an",    # .{1}
+     2  => "extra", # .{2}
+     3  => "hash",  # .{3}
+     4  => "at",    # .{4}
+     5  => "the",   # .{5}
+     16 => "end",   # .{6}
+   },           # [5]
  ]
 
 C<[]> and C<{}> brackets will indicate whether they are indexes to an array or
@@ -732,10 +735,13 @@ To turn this off, set C<$INDEX> to 0:
    "5-element",
    "array",
    {
-     0 => "with",
-     1 => "an",
-     2 => "extra",
-     3 => "hash",
+     0  => "with",
+     1  => "an",
+     2  => "extra",
+     3  => "hash",
+     4  => "at",
+     5  => "the",
+     16 => "end",
    },
  ]
 
