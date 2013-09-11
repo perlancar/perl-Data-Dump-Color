@@ -117,7 +117,6 @@ sub dump
 	$cout = _col(keyword=>"do")." {\n$cout}";
     }
 
-    print "$out\n"; # TMP
     print STDERR "$cout\n" unless defined wantarray;
     $cout;
 }
