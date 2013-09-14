@@ -435,7 +435,6 @@ sub _dump
 	    }
 	}
 
-        # determine padding for index comment
         my $maxkvlen = 0;
         for (0..$#keys) {
             my $klen = length($keys[$_]);

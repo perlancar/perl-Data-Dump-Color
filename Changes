@@ -1,5 +1,10 @@
 Revision history for Data-Dump-Color
 
+0.14     2013-09-14 (SHARYANTO)
+
+         - Sigh, another fix in alignment of index comment for hash.
+
+
 0.13     2013-09-14 (SHARYANTO)
 
          - A couple more tweaks/fixes for index comment.
