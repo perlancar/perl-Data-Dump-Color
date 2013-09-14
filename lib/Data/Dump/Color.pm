@@ -388,8 +388,7 @@ sub _dump
 	    last;
 	}
 
-	my $maxkvlen = 0;
-        my @kvlens; # length of key + last line length of each value
+        my @lenvlastline;
         for my $key (@orig_keys) {
 	    my $val = \$rval->{$key};  # capture value before we modify $key
 	    $key = quote($key) if $quote;
@@ -404,12 +403,10 @@ sub _dump
 
             my ($vlastline) = $v =~ /(.*)\z/;
             my $lenvlastline = length($vlastline);
-            push @kvlens, length($key) + $lenvlastline;
-            $maxkvlen = $kvlens[-1] if $maxkvlen < $kvlens[-1];
+            push @lenvlastline, $lenvlastline;
 	}
         #$maxvlen += length($INDENT);
 	#say "maxvlen=$maxvlen"; #TMP
-        $maxkvlen = 60 if $maxkvlen > 60;
         my $nl = "";
 	my $klen_pad = 0;
 	my $tmp = "@keys @vals";
@@ -437,6 +434,17 @@ sub _dump
 		}
 	    }
 	}
+
+        # determine padding for index comment
+        my $maxkvlen = 0;
+        for (0..$#keys) {
+            my $klen = length($keys[$_]);
+            $klen = $klen_pad if $klen < $klen_pad;
+            my $kvlen = $klen + $lenvlastline[$_];
+            $maxkvlen = $kvlen if $maxkvlen < $kvlen;
+        }
+        $maxkvlen = 60 if $maxkvlen > 60;
+
 	$out  = "{$nl";
 	$cout = "{$nl";
 	$out  .= "$INDENT# $tied$nl" if $tied;
@@ -447,13 +455,13 @@ sub _dump
 	    my $key = shift(@keys);
 	    my $val  = shift @vals;
 	    my $cval = shift @cvals;
-            my $kvlen = shift @kvlens;
+            my $lenvlastline = shift @lenvlastline;
 	    my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
 	    $val  =~ s/\n/\n$vpad/gm;
 	    $cval =~ s/\n/\n$vpad/gm;
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
-            my $cpad = " " x ($maxkvlen - $kvlen);
+            my $cpad = " " x ($maxkvlen - length($key) - $lenvlastline);
             my $idxcomment = sprintf "# %s{%${idxwidth}i}", "." x @$idx, $i;
 	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
 	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && $INDEX ? " $cpad"._col(comment => $idxcomment) : "") . $nl;
