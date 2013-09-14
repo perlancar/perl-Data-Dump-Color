@@ -1,5 +1,10 @@
 Revision history for Data-Dump-Color
 
+0.13     2013-09-14 (SHARYANTO)
+
+         - A couple more tweaks/fixes for index comment.
+
+
 0.12     2013-09-11 (SHARYANTO)
 
          - Remove debugging statement (me--).
