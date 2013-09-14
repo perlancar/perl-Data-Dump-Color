@@ -388,8 +388,8 @@ sub _dump
 	    last;
 	}
 
-	my $maxvlen = 0;
-        my @valllens;
+	my $maxkvlen = 0;
+        my @kvlens; # length of key + last line length of each value
         for my $key (@orig_keys) {
 	    my $val = \$rval->{$key};  # capture value before we modify $key
 	    $key = quote($key) if $quote;
@@ -404,13 +404,12 @@ sub _dump
 
             my ($vlastline) = $v =~ /(.*)\z/;
             my $lenvlastline = length($vlastline);
-            push @valllens, $lenvlastline;
-            #say "  vlastline=<$vlastline>, len=$lenvlastline"; # TMP
-            $maxvlen = $lenvlastline if $maxvlen < $lenvlastline;
+            push @kvlens, length($key) + $lenvlastline;
+            $maxkvlen = $kvlens[-1] if $maxkvlen < $kvlens[-1];
 	}
-        $maxvlen = 60 if $maxvlen > 60;
         #$maxvlen += length($INDENT);
 	#say "maxvlen=$maxvlen"; #TMP
+        $maxkvlen = 60 if $maxkvlen > 60;
         my $nl = "";
 	my $klen_pad = 0;
 	my $tmp = "@keys @vals";
@@ -443,21 +442,21 @@ sub _dump
 	$out  .= "$INDENT# $tied$nl" if $tied;
 	$cout .= $INDENT._col(comment=>"# $tied").$nl if $tied;
 	my $i = 0;
+        my $idxwidth = length(~~@keys);
         while (@keys) {
 	    my $key = shift(@keys);
 	    my $val  = shift @vals;
 	    my $cval = shift @cvals;
-            my $valllen = shift @valllens;
+            my $kvlen = shift @kvlens;
 	    my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
 	    $val  =~ s/\n/\n$vpad/gm;
 	    $cval =~ s/\n/\n$vpad/gm;
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
-            my $cpad = " " x ($maxvlen - $valllen);
-            my $idxcomment = $cpad . "# ".("." x @$idx)."{$i}";
-            #say "vlastline=<$vlastline>, vpad=<$vpad>, len=", length($vlastline); # TMP
-	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $idxcomment" : "") . $nl;
-	    $cout .= "$kpad"._col(key=>$key)." => $cval,".($nl && $INDEX ? " "._col(comment => $idxcomment) : "") . $nl;
+            my $cpad = " " x ($maxkvlen - $kvlen);
+            my $idxcomment = sprintf "# %s{%${idxwidth}i}", "." x @$idx, $i;
+	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
+	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && $INDEX ? " $cpad"._col(comment => $idxcomment) : "") . $nl;
             $i++;
 	}
 	$out  =~ s/,$/ / unless $nl;
@@ -602,10 +601,11 @@ sub format_list
 	my @celem = @cvals;
 	for (@elem ) { s/^/$INDENT/gm; }
 	for (@celem) { s/^/$INDENT/gm; }
+        my $idxwidth = length(~~@elem);
         for my $i (0..$#elem) {
             my ($vlastline) = $elem[$i] =~ /(.*)\z/;
             my $cpad = " " x ($maxvlen - length($vlastline));
-            my $idxcomment = "# ".("." x $extra->[0])."[$i]";
+            my $idxcomment = sprintf "# %s[%${idxwidth}i]", "." x $extra->[0], $i;
             push @res , $elem[ $i], ",", ($INDEX ? " $cpad$idxcomment" : ""), "\n";
             push @cres, $celem[$i], ",", ($INDEX ? " $cpad"._col(comment => $idxcomment) : ""), "\n";
         }
