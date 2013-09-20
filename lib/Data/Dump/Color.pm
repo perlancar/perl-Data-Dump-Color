@@ -442,7 +442,7 @@ sub _dump
             my $kvlen = $klen + $lenvlastline[$_];
             $maxkvlen = $kvlen if $maxkvlen < $kvlen;
         }
-        $maxkvlen = 60 if $maxkvlen > 60;
+        $maxkvlen = 80 if $maxkvlen > 80;
 
 	$out  = "{$nl";
 	$cout = "{$nl";
@@ -599,7 +599,7 @@ sub format_list
             my $lenvfirstline = length($vfirstline);
             $maxvlen = $lenvfirstline if $maxvlen < $lenvfirstline;
         }
-        $maxvlen = 60 if $maxvlen > 60;
+        $maxvlen = 80 if $maxvlen > 80;
         $maxvlen += length($INDENT);
 
 	my @res  = ("\n", $comment ? "$INDENT# $comment\n" : "");
