@@ -402,6 +402,7 @@ sub _dump
 	    push(@cvals, $cv);
 
             my ($vlastline) = $v =~ /(.*)\z/;
+            #say "DEBUG: vlastline=<$vlastline>";
             my $lenvlastline = length($vlastline);
             push @lenvlastline, $lenvlastline;
 	}
@@ -461,6 +462,7 @@ sub _dump
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
             my $cpad = " " x ($maxkvlen - length($key) - $lenvlastline);
+            #say "DEBUG: key=<$key>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>";
             my $idxcomment = sprintf "# %s{%${idxwidth}i}", "." x @$idx, $i;
 	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
 	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && $INDEX ? " $cpad"._col(comment => $idxcomment) : "") . $nl;
@@ -487,7 +489,7 @@ sub _dump
 
     if ($class && $ref) {
 	$cout = _col(keyword=>"bless")."($cout, " . _col(string => quote($class)) . ")";
-	$out  = "bless($out, $class)";
+	$out  = "bless($out, ".quote($class).")";
     }
     if ($comment) {
 	$comment =~ s/^/# /gm;
