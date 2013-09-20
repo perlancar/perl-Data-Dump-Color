@@ -486,7 +486,7 @@ sub _dump
     }
 
     if ($class && $ref) {
-	$cout = _col(keyword=>"bless")."($out, " . _col(string => quote($class)) . ")";
+	$cout = _col(keyword=>"bless")."($cout, " . _col(string => quote($class)) . ")";
 	$out  = "bless($out, $class)";
     }
     if ($comment) {
