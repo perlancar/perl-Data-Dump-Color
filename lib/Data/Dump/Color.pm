@@ -28,6 +28,7 @@ $INDEX = 1 unless defined $INDEX;
     Regexp  => 'yellow',
     undef   => 'bright_red',
     number  => 'bright_blue',
+    float   => 'cyan',
     string  => 'bright_yellow',
     object  => 'bright_green',
     glob    => 'bright_cyan',
@@ -293,7 +294,12 @@ sub _dump
             }
             elsif (do {no warnings 'numeric'; $$rval + 0 eq $$rval}) {
                 $out  = $$rval;
-                $cout = _col(number => $$rval);
+
+                if (is_float($out)) {
+                    $cout = _col(float => $$rval);
+                } else {
+                    $cout = _col(number => $$rval);
+                }
             }
             else {
                 $out  = str($$rval);
@@ -624,6 +630,13 @@ sub format_list
     }
 }
 
+sub is_float {
+    my $val = shift;
+    my $ret = $val =~ m/^\d+\.\d+$/;
+
+    return $ret;
+}
+
 sub str {
   if (length($_[0]) > 20) {
       for ($_[0]) {
@@ -805,4 +818,4 @@ color when in interactive terminal. This is consulted when C<$COLOR> is not set.
 L<Data::Dump>, L<JSON::Color>, L<YAML::Tiny::Color>
 
 =cut
-# vim: tabstop=4 shiftwidth=8 expandtab
+# vim: tabstop=4 shiftwidth=4 expandtab
