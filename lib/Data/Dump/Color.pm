@@ -82,6 +82,11 @@ sub set_fcolor {
 }
 
 sub terminal_color_depth {
+    # If we're not attached to an STDOUT don't go any further
+    if (!-t STDOUT) {
+        return 8;
+    }
+
     # This is only good on Linux/Mac right now
     # Windows will always return 8 colors...
     my $cmd  = "tput colors"; # FIXME
