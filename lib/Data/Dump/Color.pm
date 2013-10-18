@@ -805,3 +805,4 @@ color when in interactive terminal. This is consulted when C<$COLOR> is not set.
 L<Data::Dump>, L<JSON::Color>, L<YAML::Tiny::Color>
 
 =cut
+# vim: tabstop=4 shiftwidth=8 expandtab
