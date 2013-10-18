@@ -800,6 +800,24 @@ color when in interactive terminal. This is consulted when C<$COLOR> is not set.
 =back
 
 
+=head1 FAQ
+
+=head2 How do I turn off index comments?
+
+Set C<$Data::Dump::Color::INDEX> to 0.
+
+=head2 How do I turn off colors?
+
+Well, colors is sort of the point of this module. But if you want to turn it
+off, you can set environment COLOR to 0, or C<$Data::Dump::Color::COLOR> to 0.
+
+=head2 How do I customize colors?
+
+Fiddle the colors in C<%Data::Dump::Color::COLORS>. There will probably be
+proper color theme support in the future (based on
+L<SHARYANTO::Role::ColorTheme>.
+
+
 =head1 SEE ALSO
 
 L<Data::Dump>, L<JSON::Color>, L<YAML::Tiny::Color>
