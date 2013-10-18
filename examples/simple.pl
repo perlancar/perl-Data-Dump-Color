@@ -10,7 +10,7 @@ $a = {
 	'neg'     => -4.5,
 	'str_num' => "45",
 	'undef'   => undef,
-	'array'   => [111.1,222,333.3,444],
+	'array'   => [111.1,"222",333.3,444],
 	'test'    => .5,
 	'sym'     => $sym,
 	'hash'    => { color => 'red', animal => 'kitten', age => 19 },
