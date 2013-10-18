@@ -1,5 +1,15 @@
 Revision history for Data-Dump-Color
 
+0.16     2013-10-18 (SHARYANTO)
+
+         - Colorize float differently, quote stringy numbers [suggested by Scott
+           Baker].
+
+         - Add example script (reworked from Scott Baker's version).
+
+         - Add some FAQ items.
+
+
 0.15     2013-09-20 (SHARYANTO)
 
          - A couple of fixes and tweaks for index comment.
