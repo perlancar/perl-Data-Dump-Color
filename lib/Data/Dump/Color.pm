@@ -632,7 +632,7 @@ sub format_list
 
 sub is_float {
     my $val = shift;
-    my $ret = $val =~ m/^\d+\.\d+$/;
+    my $ret = $val =~ m/^-?\d+\.\d+$/;
 
     return $ret;
 }
