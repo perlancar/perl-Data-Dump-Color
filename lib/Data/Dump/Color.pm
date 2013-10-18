@@ -10,20 +10,19 @@ require Exporter;
 @EXPORT = qw(dd ddx);
 @EXPORT_OK = qw(dump pp dumpf quote);
 
-# VERSION
-$DEBUG = 0;
-
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
-use vars qw(%COLORS $COLOR $INDEX);
+use vars qw(%COLORS %COLORS256 $COLOR $INDEX $DEPTH);
 
 use Term::ANSIColor;
 require Win32::Console::ANSI if $^O =~ /Win/;
 use Scalar::Util qw(looks_like_number);
 
+$DEBUG      = 0;
 $TRY_BASE64 = 50 unless defined $TRY_BASE64;
-$INDENT = "  " unless defined $INDENT;
-$INDEX = 1 unless defined $INDEX;
+$INDENT     = "  " unless defined $INDENT;
+$INDEX      = 1 unless defined $INDEX;
+$DEPTH      = terminal_color_depth();
 
 %COLORS = (
     Regexp  => 'yellow',
@@ -39,14 +38,67 @@ $INDEX = 1 unless defined $INDEX;
     symbol  => 'cyan',
     linum   => 'black on_white', # file:line number
 );
+
+# Numbers from http://www.perturb.org/code/term-colors.pl
+%COLORS256 = (
+    Regexp  => 135,
+    undef   => 124,
+    number  => 27,
+    float   => 51,
+    string  => 226,
+    object  => 10,
+    glob    => 10,
+    key     => 202,
+    comment => 34,
+    keyword => 21,
+    symbol  => 51,
+    linum   => 10,
+);
+
 my $_colreset = color('reset');
 sub _col {
     my ($col, $str) = @_;
+
+    # If we're asking for color, and we're outptting to STDOUT
     if ($COLOR // $ENV{COLOR} // (-t STDOUT)) {
-        color($COLORS{$col}) . $str . $_colreset;
+        if ($DEPTH >= 256) {
+            set_fcolor($COLORS256{$col}) . $str . $_colreset;
+        } else {
+            color($COLORS{$col}) . $str . $_colreset;
+        }
     } else {
         $str;
     }
+}
+
+sub set_fcolor {
+    my $c = shift();
+
+    my $ret = '';
+    if (!defined($c)) { $ret = "\e[0m"; } # Reset the color
+    else { $ret = "\e[38;5;${c}m"; }
+
+    return $ret;
+}
+
+sub terminal_color_depth {
+    # If we're not attached to an STDOUT don't go any further
+    if (!-t STDOUT) {
+        return 8;
+    }
+
+    # This is only good on Linux/Mac right now
+    # Windows will always return 8 colors...
+    my $cmd  = "tput colors"; # FIXME
+    my $out  = int(`$cmd`);
+    my $exit = $? >> 8;
+
+    # If we don't get anything from tput, assume 8 colors
+    if ($exit != 0 || !$out) { 
+       return 8;
+    }
+
+    return $out;
 }
 
 sub dump
