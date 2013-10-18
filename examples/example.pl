@@ -23,6 +23,8 @@ dd({
     num_inf => inf,
     num_neg_nan => -nan,
     num_neg_inf => -inf,
+    num_exp => 1.2e+100,
+    num_neg_exp => -1.2e-101,
 
     # arrays
     array => [1, 2.2, "3", "a", "b", undef, []],
