@@ -19,6 +19,7 @@ use vars qw(%COLORS $COLOR $INDEX);
 
 use Term::ANSIColor;
 require Win32::Console::ANSI if $^O =~ /Win/;
+use Scalar::Util qw(looks_like_number);
 
 $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
@@ -27,7 +28,8 @@ $INDEX = 1 unless defined $INDEX;
 %COLORS = (
     Regexp  => 'yellow',
     undef   => 'bright_red',
-    number  => 'bright_blue',
+    number  => 'bright_blue', # floats can have different color
+    float   => 'cyan',
     string  => 'bright_yellow',
     object  => 'bright_green',
     glob    => 'bright_cyan',
@@ -291,9 +293,11 @@ sub _dump
 		$out  = 'undef';
 		$cout = _col('undef', "undef");
 	    }
-	    elsif (do {no warnings 'numeric'; $$rval + 0 eq $$rval}) {
-		$out  = $$rval;
-		$cout = _col(number => $$rval);
+	    elsif (my $ntype = looks_like_number($$rval)) {
+		my $val = $ntype < 20 ? qq("$$rval") : $$rval;
+                my $col = $ntype =~ /^(5|13|8704)$/ ? "float":"number";
+                $out  = $val;
+		$cout = _col($col => $val);
 	    }
 	    else {
 		$out  = str($$rval);
