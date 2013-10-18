@@ -28,6 +28,7 @@ $INDEX = 1 unless defined $INDEX;
     Regexp  => 'yellow',
     undef   => 'bright_red',
     number  => 'bright_blue',
+    float   => 'cyan',
     string  => 'bright_yellow',
     object  => 'bright_green',
     glob    => 'bright_cyan',
@@ -62,37 +63,37 @@ sub dump
     my @cdump;
 
     for my $v (@_) {
-	my ($val, $cval) = _dump($v, $name, [], tied($v));
-	push(@dump , [$name,  $val]);
-	push(@cdump, [$name, $cval]);
+        my ($val, $cval) = _dump($v, $name, [], tied($v));
+        push(@dump , [$name,  $val]);
+        push(@cdump, [$name, $cval]);
     } continue {
-	$name++;
+        $name++;
     }
 
     my $out  = "";
     my $cout = "";
     if (%require) {
-	for (sort keys %require) {
-	    $out  .= "require $_;\n";
-	    $cout .= _col(keyword=>"require")." "._col(symbol=>$_).";\n";
-	}
+        for (sort keys %require) {
+            $out  .= "require $_;\n";
+            $cout .= _col(keyword=>"require")." "._col(symbol=>$_).";\n";
+        }
     }
     if (%refcnt) {
-	# output all those with refcounts first
-	for my $i (0..$#dump) {
-	    my $name  = $dump[ $i][0];
-	    my $cname = $cdump[$i][0];
-	    if ($refcnt{$name}) {
-		$out  .= "my \$$name = $dump[$i][1];\n";
-		$cout .= _col(keyword=>"my")." "._col(symbol=>"\$$cname")." = $cdump[$i][1];\n";
-		undef $dump[ $i][1];
-		undef $cdump[$i][1];
-	    }
-	}
-	for my $i (0..$#fixup) {
-	    $out  .= "$fixup[$i];\n";
-	    $cout .= "$cfixup[$i];\n";
-	}
+        # output all those with refcounts first
+        for my $i (0..$#dump) {
+            my $name  = $dump[ $i][0];
+            my $cname = $cdump[$i][0];
+            if ($refcnt{$name}) {
+                $out  .= "my \$$name = $dump[$i][1];\n";
+                $cout .= _col(keyword=>"my")." "._col(symbol=>"\$$cname")." = $cdump[$i][1];\n";
+                undef $dump[ $i][1];
+                undef $cdump[$i][1];
+            }
+        }
+        for my $i (0..$#fixup) {
+            $out  .= "$fixup[$i];\n";
+            $cout .= "$cfixup[$i];\n";
+        }
     }
 
     my $paren = (@dump != 1);
@@ -109,12 +110,12 @@ sub dump
     $cout .= ")" if $paren;
 
     if (%refcnt || %require) {
-	$out  .= ";\n";
-	$cout .= ";\n";
-	$out  =~ s/^/$INDENT/gm;
-	$cout =~ s/^/$INDENT/gm;
-	$out  = "do {\n$out}";
-	$cout = _col(keyword=>"do")." {\n$cout}";
+        $out  .= ";\n";
+        $cout .= ";\n";
+        $out  =~ s/^/$INDENT/gm;
+        $cout =~ s/^/$INDENT/gm;
+        $out  = "do {\n$out}";
+        $cout = _col(keyword=>"do")." {\n$cout}";
     }
 
     print STDERR "$cout\n" unless defined wantarray;
@@ -155,18 +156,18 @@ sub _dump
     my $strval = overload::StrVal($rval);
     # Parse $strval without using regexps, in order not to clobber $1, $2,...
     if ((my $i = rindex($strval, "=")) >= 0) {
-	$class = substr($strval, 0, $i);
-	$strval = substr($strval, $i+1);
+        $class = substr($strval, 0, $i);
+        $strval = substr($strval, $i+1);
     }
     if ((my $i = index($strval, "(0x")) >= 0) {
-	$type = substr($strval, 0, $i);
-	$id = substr($strval, $i + 2, -1);
+        $type = substr($strval, 0, $i);
+        $id = substr($strval, $i + 2, -1);
     }
     else {
-	die "Can't parse " . overload::StrVal($rval);
+        die "Can't parse " . overload::StrVal($rval);
     }
     if ($] < 5.008 && $type eq "SCALAR") {
-	$type = "REF" if $ref eq "REF";
+        $type = "REF" if $ref eq "REF";
     }
     warn "\$$name(@$idx) $class $type $id ($ref)" if $DEBUG;
 
@@ -175,266 +176,271 @@ sub _dump
     my $comment;
     my $hide_keys;
     if (@FILTERS) {
-	my $pself = "";
-	($pself, undef) = fullname("self", [@$idx[$pidx..(@$idx - 1)]]) if $pclass;
-	my $ctx = Data::Dump::FilterContext->new($rval, $class, $type, $ref, $pclass, $pidx, $idx);
-	my @bless;
-	for my $filter (@FILTERS) {
-	    if (my $f = $filter->($ctx, $rval)) {
-		if (my $v = $f->{object}) {
-		    local @FILTERS;
-		    ($out, $cout) = _dump($v, $name, $idx, 1);
-		    $dont_remember++;
-		}
-		if (defined(my $c = $f->{bless})) {
-		    push(@bless, $c);
-		}
-		if (my $c = $f->{comment}) {
-		    $comment = $c;
-		}
-		if (defined(my $c = $f->{dump})) {
-		    $out  = $c;
-		    $cout = $c; # XXX where's the colored version?
-		    $dont_remember++;
-		}
-		if (my $h = $f->{hide_keys}) {
-		    if (ref($h) eq "ARRAY") {
-			$hide_keys = sub {
-			    for my $k (@$h) {
-				return (1, 1) if $k eq $_[0]; # XXX color?
-			    }
-			    return (0, 0); # XXX color?
-			};
-		    }
-		}
-	    }
-	}
-	push(@bless, "") if defined($out) && !@bless;
-	if (@bless) {
-	    $class = shift(@bless);
-	    warn "More than one filter callback tried to bless object" if @bless;
-	}
+        my $pself = "";
+        ($pself, undef) = fullname("self", [@$idx[$pidx..(@$idx - 1)]]) if $pclass;
+        my $ctx = Data::Dump::FilterContext->new($rval, $class, $type, $ref, $pclass, $pidx, $idx);
+        my @bless;
+        for my $filter (@FILTERS) {
+            if (my $f = $filter->($ctx, $rval)) {
+                if (my $v = $f->{object}) {
+                    local @FILTERS;
+                    ($out, $cout) = _dump($v, $name, $idx, 1);
+                    $dont_remember++;
+                }
+                if (defined(my $c = $f->{bless})) {
+                    push(@bless, $c);
+                }
+                if (my $c = $f->{comment}) {
+                    $comment = $c;
+                }
+                if (defined(my $c = $f->{dump})) {
+                    $out  = $c;
+                    $cout = $c; # XXX where's the colored version?
+                    $dont_remember++;
+                }
+                if (my $h = $f->{hide_keys}) {
+                    if (ref($h) eq "ARRAY") {
+                        $hide_keys = sub {
+                            for my $k (@$h) {
+                                return (1, 1) if $k eq $_[0]; # XXX color?
+                            }
+                            return (0, 0); # XXX color?
+                        };
+                    }
+                }
+            }
+        }
+        push(@bless, "") if defined($out) && !@bless;
+        if (@bless) {
+            $class = shift(@bless);
+            warn "More than one filter callback tried to bless object" if @bless;
+        }
     }
 
     unless ($dont_remember) {
-	if (my $s = $seen{$id}) {
-	    my($sname, $sidx) = @$s;
-	    $refcnt{$sname}++;
-	    my ($sref, $csref)  = fullname($sname, $sidx,
+        if (my $s = $seen{$id}) {
+            my($sname, $sidx) = @$s;
+            $refcnt{$sname}++;
+            my ($sref, $csref)  = fullname($sname, $sidx,
                                            ($ref && $type eq "SCALAR"));
-	    warn "SEEN: [\$$name(@$idx)] => [\$$sname(@$sidx)] ($ref,$sref)" if $DEBUG;
-	    return ($sref, $csref) unless $sname eq $name; # XXX color?
-	    $refcnt{$name}++;
+            warn "SEEN: [\$$name(@$idx)] => [\$$sname(@$sidx)] ($ref,$sref)" if $DEBUG;
+            return ($sref, $csref) unless $sname eq $name; # XXX color?
+            $refcnt{$name}++;
             my ($fn, $cfn) = fullname($name, $idx);
-	    push(@fixup , "$fn = $sref");
-	    push(@cfixup, "$cfn = $csref");
-	    return (
+            push(@fixup , "$fn = $sref");
+            push(@cfixup, "$cfn = $csref");
+            return (
                 "do{my \$fix}",
                 _col(keyword=>"do")."{"._col(keyword=>"my")." "._col(symbol=>"\$fix")."}",
             ) if @$idx && $idx->[-1] eq '$';
-	    return (
+            return (
                 "'fix'",
                 _col(string => "'fix'"),
             );
-	}
-	$seen{$id} = [$name, $idx];
+        }
+        $seen{$id} = [$name, $idx];
     }
 
     if ($class) {
-	$pclass = $class;
-	$pidx = @$idx;
+        $pclass = $class;
+        $pidx = @$idx;
     }
 
     if (defined $out) {
-	# keep it
+        # keep it
     }
     elsif ($type eq "SCALAR" || $type eq "REF" || $type eq "REGEXP") {
-	if ($ref) {
-	    if ($class && $class eq "Regexp") {
-		my $v = "$rval";
+        if ($ref) {
+            if ($class && $class eq "Regexp") {
+                my $v = "$rval";
 
-		my $mod = "";
-		if ($v =~ /^\(\?\^?([msix-]*):([\x00-\xFF]*)\)\z/) {
-		    $mod = $1;
-		    $v = $2;
-		    $mod =~ s/-.*//;
-		}
+                my $mod = "";
+                if ($v =~ /^\(\?\^?([msix-]*):([\x00-\xFF]*)\)\z/) {
+                    $mod = $1;
+                    $v = $2;
+                    $mod =~ s/-.*//;
+                }
 
-		my $sep = '/';
-		my $sep_count = ($v =~ tr/\///);
-		if ($sep_count) {
-		    # see if we can find a better one
-		    for ('|', ',', ':', '#') {
-			my $c = eval "\$v =~ tr/\Q$_\E//";
-			#print "SEP $_ $c $sep_count\n";
-			if ($c < $sep_count) {
-			    $sep = $_;
-			    $sep_count = $c;
-			    last if $sep_count == 0;
-			}
-		    }
-		}
-		$v =~ s/\Q$sep\E/\\$sep/g;
+                my $sep = '/';
+                my $sep_count = ($v =~ tr/\///);
+                if ($sep_count) {
+                    # see if we can find a better one
+                    for ('|', ',', ':', '#') {
+                        my $c = eval "\$v =~ tr/\Q$_\E//";
+                        #print "SEP $_ $c $sep_count\n";
+                        if ($c < $sep_count) {
+                            $sep = $_;
+                            $sep_count = $c;
+                            last if $sep_count == 0;
+                        }
+                    }
+                }
+                $v =~ s/\Q$sep\E/\\$sep/g;
 
-		$out  = "qr$sep$v$sep$mod";
-		$cout = _col('Regexp', $out);
-		undef($class);
-	    }
-	    else {
-		delete $seen{$id} if $type eq "SCALAR";  # will be seen again shortly
-		my ($val, $cval) = _dump($$rval, $name, [@$idx, ["\$","\$"]], 0, $pclass, $pidx);
-		$out  = $class ? "do{\\(my \$o = $val)}" : "\\$val";
-		$cout = $class ? _col(keyword=>"do")."{\\("._col(keyword=>"my")." "._col(symbol=>"\$o")." = $cval)}" : "\\$cval";
-	    }
-	} else {
-	    if (!defined $$rval) {
-		$out  = 'undef';
-		$cout = _col('undef', "undef");
-	    }
-	    elsif (do {no warnings 'numeric'; $$rval + 0 eq $$rval}) {
-		$out  = $$rval;
-		$cout = _col(number => $$rval);
-	    }
-	    else {
-		$out  = str($$rval);
-		$cout = _col(string => $out);
-	    }
-	    if ($class && !@$idx) {
-		# Top is an object, not a reference to one as perl needs
-		$refcnt{$name}++;
-		my ($obj, $cobj) = fullname($name, $idx);
-		my $cl  = quote($class);
-		push(@fixup , "bless \\$obj, $cl");
-		push(@cfixup, _col(keyword => "bless")." \\$cobj, "._col(string=>$cl));
-	    }
-	}
+                $out  = "qr$sep$v$sep$mod";
+                $cout = _col('Regexp', $out);
+                undef($class);
+            }
+            else {
+                delete $seen{$id} if $type eq "SCALAR";  # will be seen again shortly
+                my ($val, $cval) = _dump($$rval, $name, [@$idx, ["\$","\$"]], 0, $pclass, $pidx);
+                $out  = $class ? "do{\\(my \$o = $val)}" : "\\$val";
+                $cout = $class ? _col(keyword=>"do")."{\\("._col(keyword=>"my")." "._col(symbol=>"\$o")." = $cval)}" : "\\$cval";
+            }
+        } else {
+            if (!defined $$rval) {
+                $out  = 'undef';
+                $cout = _col('undef', "undef");
+            }
+            elsif (do {no warnings 'numeric'; $$rval + 0 eq $$rval}) {
+                $out  = $$rval;
+
+                if (is_float($out)) {
+                    $cout = _col(float => $$rval);
+                } else {
+                    $cout = _col(number => $$rval);
+                }
+            }
+            else {
+                $out  = str($$rval);
+                $cout = _col(string => $out);
+            }
+            if ($class && !@$idx) {
+                # Top is an object, not a reference to one as perl needs
+                $refcnt{$name}++;
+                my ($obj, $cobj) = fullname($name, $idx);
+                my $cl  = quote($class);
+                push(@fixup , "bless \\$obj, $cl");
+                push(@cfixup, _col(keyword => "bless")." \\$cobj, "._col(string=>$cl));
+            }
+        }
     }
     elsif ($type eq "GLOB") {
-	if ($ref) {
-	    delete $seen{$id};
-	    my ($val, $cval) = _dump($$rval, $name, [@$idx, ["*","*"]], 0, $pclass, $pidx);
-	    $out  = "\\$val";
-	    $cout = "\\$cval";
-	    if ($out =~ /^\\\*Symbol::/) {
-		$require{Symbol}++;
-		$out  = "Symbol::gensym()";
-		$cout = _col(glob => $out);
-	    }
-	} else {
-	    my $val = "$$rval";
-	    $out  = "$$rval";
-	    $cout = _col(glob => $out);
+        if ($ref) {
+            delete $seen{$id};
+            my ($val, $cval) = _dump($$rval, $name, [@$idx, ["*","*"]], 0, $pclass, $pidx);
+            $out  = "\\$val";
+            $cout = "\\$cval";
+            if ($out =~ /^\\\*Symbol::/) {
+                $require{Symbol}++;
+                $out  = "Symbol::gensym()";
+                $cout = _col(glob => $out);
+            }
+        } else {
+            my $val = "$$rval";
+            $out  = "$$rval";
+            $cout = _col(glob => $out);
 
-	    for my $k (qw(SCALAR ARRAY HASH)) {
-		my $gval = *$$rval{$k};
-		next unless defined $gval;
-		next if $k eq "SCALAR" && ! defined $$gval;  # always there
-		my $f = scalar @fixup;
-		push(@fixup, "RESERVED");  # overwritten after _dump() below
-		my $cgval;
+            for my $k (qw(SCALAR ARRAY HASH)) {
+                my $gval = *$$rval{$k};
+                next unless defined $gval;
+                next if $k eq "SCALAR" && ! defined $$gval;  # always there
+                my $f = scalar @fixup;
+                push(@fixup, "RESERVED");  # overwritten after _dump() below
+                my $cgval;
                 ($gval, $cgval) = _dump($gval, $name, [@$idx, ["*{$k}", "*{"._col(string=>$k)."}"]], 0, $pclass, $pidx);
-		$refcnt{$name}++;
-		my ($gname, $cgname) = fullname($name, $idx);
-		$fixup[ $f] = "$gname = $gval" ;  #XXX indent $gval
-		$cfixup[$f] = "$gname = $cgval";  #XXX indent $gval
-	    }
-	}
+                $refcnt{$name}++;
+                my ($gname, $cgname) = fullname($name, $idx);
+                $fixup[ $f] = "$gname = $gval" ;  #XXX indent $gval
+                $cfixup[$f] = "$gname = $cgval";  #XXX indent $gval
+            }
+        }
     }
     elsif ($type eq "ARRAY") {
-	my @vals;
+        my @vals;
         my @cvals;
-	my $tied = tied_str(tied(@$rval));
-	my $i = 0;
-	for my $v (@$rval) {
-	    my ($d, $cd) = _dump($v, $name, [@$idx, ["[$i]","["._col(number=>$i)."]"]], $tied, $pclass, $pidx);
+        my $tied = tied_str(tied(@$rval));
+        my $i = 0;
+        for my $v (@$rval) {
+            my ($d, $cd) = _dump($v, $name, [@$idx, ["[$i]","["._col(number=>$i)."]"]], $tied, $pclass, $pidx);
             push @vals ,  $d;
             push @cvals, $cd;
-	    $i++;
-	}
-	my ($f, $cf) = format_list(1, $tied, [scalar(@$idx)], \@vals, \@cvals);
+            $i++;
+        }
+        my ($f, $cf) = format_list(1, $tied, [scalar(@$idx)], \@vals, \@cvals);
         $out  = "[$f]";
         $cout = "[$cf]";
     }
     elsif ($type eq "HASH") {
-	my(@keys, @vals, @cvals);
-	my $tied = tied_str(tied(%$rval));
+        my(@keys, @vals, @cvals);
+        my $tied = tied_str(tied(%$rval));
 
-	# statistics to determine variation in key lengths
-	my $kstat_max = 0;
-	my $kstat_sum = 0;
-	my $kstat_sum2 = 0;
+        # statistics to determine variation in key lengths
+        my $kstat_max = 0;
+        my $kstat_sum = 0;
+        my $kstat_sum2 = 0;
 
         my @orig_keys = keys %$rval;
-	if ($hide_keys) {
-	    @orig_keys = grep !$hide_keys->($_), @orig_keys;
-	}
-	my $text_keys = 0;
-	for (@orig_keys) {
-	    $text_keys++, last unless /^[-+]?(?:0|[1-9]\d*)(?:\.\d+)?\z/;
-	}
+        if ($hide_keys) {
+            @orig_keys = grep !$hide_keys->($_), @orig_keys;
+        }
+        my $text_keys = 0;
+        for (@orig_keys) {
+            $text_keys++, last unless /^[-+]?(?:0|[1-9]\d*)(?:\.\d+)?\z/;
+        }
 
-	if ($text_keys) {
-	    @orig_keys = sort { lc($a) cmp lc($b) } @orig_keys;
-	}
-	else {
-	    @orig_keys = sort { $a <=> $b } @orig_keys;
-	}
+        if ($text_keys) {
+            @orig_keys = sort { lc($a) cmp lc($b) } @orig_keys;
+        }
+        else {
+            @orig_keys = sort { $a <=> $b } @orig_keys;
+        }
 
-	my $quote;
-	for my $key (@orig_keys) {
-	    next if $key =~ /^-?[a-zA-Z_]\w*\z/;
-	    next if $key =~ /^-?[1-9]\d{0,8}\z/;
-	    $quote++;
-	    last;
-	}
+        my $quote;
+        for my $key (@orig_keys) {
+            next if $key =~ /^-?[a-zA-Z_]\w*\z/;
+            next if $key =~ /^-?[1-9]\d{0,8}\z/;
+            $quote++;
+            last;
+        }
 
         my @lenvlastline;
         for my $key (@orig_keys) {
-	    my $val = \$rval->{$key};  # capture value before we modify $key
-	    $key = quote($key) if $quote;
-	    $kstat_max = length($key) if length($key) > $kstat_max;
-	    $kstat_sum += length($key);
-	    $kstat_sum2 += length($key)*length($key);
+            my $val = \$rval->{$key};  # capture value before we modify $key
+            $key = quote($key) if $quote;
+            $kstat_max = length($key) if length($key) > $kstat_max;
+            $kstat_sum += length($key);
+            $kstat_sum2 += length($key)*length($key);
 
-	    push(@keys, $key);
+            push(@keys, $key);
             my ($v, $cv) = _dump($$val, $name, [@$idx, ["{$key}","{"._col(string=>$key)."}"]], $tied, $pclass, $pidx);
-	    push(@vals ,  $v);
-	    push(@cvals, $cv);
+            push(@vals ,  $v);
+            push(@cvals, $cv);
 
             my ($vlastline) = $v =~ /(.*)\z/;
             #say "DEBUG: vlastline=<$vlastline>";
             my $lenvlastline = length($vlastline);
             push @lenvlastline, $lenvlastline;
-	}
+        }
         #$maxvlen += length($INDENT);
-	#say "maxvlen=$maxvlen"; #TMP
+        #say "maxvlen=$maxvlen"; #TMP
         my $nl = "";
-	my $klen_pad = 0;
-	my $tmp = "@keys @vals";
-	if (length($tmp) > 60 || $tmp =~ /\n/ || $tied) {
-	    $nl = "\n";
+        my $klen_pad = 0;
+        my $tmp = "@keys @vals";
+        if (length($tmp) > 60 || $tmp =~ /\n/ || $tied) {
+            $nl = "\n";
 
-	    # Determine what padding to add
-	    if ($kstat_max < 4) {
-		$klen_pad = $kstat_max;
-	    }
-	    elsif (@keys >= 2) {
-		my $n = @keys;
-		my $avg = $kstat_sum/$n;
-		my $stddev = sqrt(($kstat_sum2 - $n * $avg * $avg) / ($n - 1));
+            # Determine what padding to add
+            if ($kstat_max < 4) {
+                $klen_pad = $kstat_max;
+            }
+            elsif (@keys >= 2) {
+                my $n = @keys;
+                my $avg = $kstat_sum/$n;
+                my $stddev = sqrt(($kstat_sum2 - $n * $avg * $avg) / ($n - 1));
 
-		# I am not actually very happy with this heuristics
-		if ($stddev / $kstat_max < 0.25) {
-		    $klen_pad = $kstat_max;
-		}
-		if ($DEBUG) {
-		    push(@keys, "__S");
-		    push(@vals, sprintf("%.2f (%d/%.1f/%.1f)",
-					$stddev / $kstat_max,
-					$kstat_max, $avg, $stddev));
-		}
-	    }
-	}
+                # I am not actually very happy with this heuristics
+                if ($stddev / $kstat_max < 0.25) {
+                    $klen_pad = $kstat_max;
+                }
+                if ($DEBUG) {
+                    push(@keys, "__S");
+                    push(@vals, sprintf("%.2f (%d/%.1f/%.1f)",
+                                        $stddev / $kstat_max,
+                                        $kstat_max, $avg, $stddev));
+                }
+            }
+        }
 
         my $maxkvlen = 0;
         for (0..$#keys) {
@@ -445,58 +451,58 @@ sub _dump
         }
         $maxkvlen = 80 if $maxkvlen > 80;
 
-	$out  = "{$nl";
-	$cout = "{$nl";
-	$out  .= "$INDENT# $tied$nl" if $tied;
-	$cout .= $INDENT._col(comment=>"# $tied").$nl if $tied;
-	my $i = 0;
+        $out  = "{$nl";
+        $cout = "{$nl";
+        $out  .= "$INDENT# $tied$nl" if $tied;
+        $cout .= $INDENT._col(comment=>"# $tied").$nl if $tied;
+        my $i = 0;
         my $idxwidth = length(~~@keys);
         while (@keys) {
-	    my $key = shift(@keys);
-	    my $val  = shift @vals;
-	    my $cval = shift @cvals;
+            my $key = shift(@keys);
+            my $val  = shift @vals;
+            my $cval = shift @cvals;
             my $lenvlastline = shift @lenvlastline;
-	    my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
-	    $val  =~ s/\n/\n$vpad/gm;
-	    $cval =~ s/\n/\n$vpad/gm;
-	    my $kpad = $nl ? $INDENT : " ";
-	    $key .= " " x ($klen_pad - length($key)) if $nl;
+            my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
+            $val  =~ s/\n/\n$vpad/gm;
+            $cval =~ s/\n/\n$vpad/gm;
+            my $kpad = $nl ? $INDENT : " ";
+            $key .= " " x ($klen_pad - length($key)) if $nl;
             my $cpad = " " x ($maxkvlen - length($key) - $lenvlastline);
             #say "DEBUG: key=<$key>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>";
             my $idxcomment = sprintf "# %s{%${idxwidth}i}", "." x @$idx, $i;
-	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
-	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && $INDEX ? " $cpad"._col(comment => $idxcomment) : "") . $nl;
+            $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
+            $cout .= $kpad._col(key=>$key)." => $cval,".($nl && $INDEX ? " $cpad"._col(comment => $idxcomment) : "") . $nl;
             $i++;
-	}
-	$out  =~ s/,$/ / unless $nl;
-	$cout =~ s/,$/ / unless $nl;
-	$out  .= "}";
-	$cout .= "}";
+        }
+        $out  =~ s/,$/ / unless $nl;
+        $cout =~ s/,$/ / unless $nl;
+        $out  .= "}";
+        $cout .= "}";
     }
     elsif ($type eq "CODE") {
-	$out  = 'sub { ... }';
-	$cout = _col(keyword=>'sub').' { ... }';
+        $out  = 'sub { ... }';
+        $cout = _col(keyword=>'sub').' { ... }';
     }
     elsif ($type eq "VSTRING") {
         $out  = sprintf +($ref ? '\v%vd' : 'v%vd'), $$rval;
         $cout = _col(string => $out);
     }
     else {
-	warn "Can't handle $type data";
-	$out  = "'#$type#'";
-	$cout = _col(comment => $out);
+        warn "Can't handle $type data";
+        $out  = "'#$type#'";
+        $cout = _col(comment => $out);
     }
 
     if ($class && $ref) {
-	$cout = _col(keyword=>"bless")."($cout, " . _col(string => quote($class)) . ")";
-	$out  = "bless($out, ".quote($class).")";
+        $cout = _col(keyword=>"bless")."($cout, " . _col(string => quote($class)) . ")";
+        $out  = "bless($out, ".quote($class).")";
     }
     if ($comment) {
-	$comment =~ s/^/# /gm;
-	$comment .= "\n" unless $comment =~ /\n\z/;
-	$comment =~ s/^#[ \t]+\n/\n/;
-	$cout = _col(comment=>$comment).$out;
-	$out  = "$comment$out";
+        $comment =~ s/^/# /gm;
+        $comment .= "\n" unless $comment =~ /\n\z/;
+        $comment =~ s/^#[ \t]+\n/\n/;
+        $cout = _col(comment=>$comment).$out;
+        $out  = "$comment$out";
     }
     return ($out, $cout);
 }
@@ -504,12 +510,12 @@ sub _dump
 sub tied_str {
     my $tied = shift;
     if ($tied) {
-	if (my $tied_ref = ref($tied)) {
-	    $tied = "tied $tied_ref";
-	}
-	else {
-	    $tied = "tied";
-	}
+        if (my $tied_ref = ref($tied)) {
+            $tied = "tied $tied_ref";
+        }
+        else {
+            $tied = "tied";
+        }
     }
     return $tied;
 }
@@ -523,31 +529,31 @@ sub fullname
 
     my @i = @$idx;  # need copy in order to not modify @$idx
     if ($ref && @i && $i[0][0] eq "\$") {
-	shift(@i);  # remove one deref
-	$ref = 0;
+        shift(@i);  # remove one deref
+        $ref = 0;
     }
     while (@i && $i[0][0] eq "\$") {
-	shift @i;
-	$name  = "\$$name";
-	$cname = _col(symbol=>$name);
+        shift @i;
+        $name  = "\$$name";
+        $cname = _col(symbol=>$name);
     }
 
     my $last_was_index;
     for my $i (@i) {
-	if ($i->[0] eq "*" || $i->[0] eq "\$") {
-	    $last_was_index = 0;
-	    $name  = "$i->[0]\{$name}";
-	    $cname = "$i->[1]\{$cname}";
-	} elsif ($i->[0] =~ s/^\*//) {
-	    $name  .= $i->[0];
-	    $cname .= $i->[1];
-	    $last_was_index++;
-	} else {
-	    $name  .= "->" unless $last_was_index++;
-	    $cname .= "->" unless $last_was_index++;
-	    $name  .= $i->[0];
-	    $cname .= $i->[1];
-	}
+        if ($i->[0] eq "*" || $i->[0] eq "\$") {
+            $last_was_index = 0;
+            $name  = "$i->[0]\{$name}";
+            $cname = "$i->[1]\{$cname}";
+        } elsif ($i->[0] =~ s/^\*//) {
+            $name  .= $i->[0];
+            $cname .= $i->[1];
+            $last_was_index++;
+        } else {
+            $name  .= "->" unless $last_was_index++;
+            $cname .= "->" unless $last_was_index++;
+            $name  .= $i->[0];
+            $cname .= $i->[1];
+        }
     }
     $name = "\\$name" if $ref;
     ($name, $cname);
@@ -564,33 +570,33 @@ sub format_list
     my @cvals = @{ shift(@_) };
 
     if (@vals > 3) {
-	# can we use range operator to shorten the list?
-	my $i = 0;
-	while ($i < @vals) {
-	    my $j = $i + 1;
-	    my $v = $vals[$i];
-	    while ($j < @vals) {
-		# XXX allow string increment too?
-		if ($v eq "0" || $v =~ /^-?[1-9]\d{0,9}\z/) {
-		    $v++;
-		}
-		elsif ($v =~ /^"([A-Za-z]{1,3}\d*)"\z/) {
-		    $v = $1;
-		    $v++;
-		    $v = qq("$v");
-		}
-		else {
-		    last;
-		}
-		last if $vals[$j] ne $v;
-		$j++;
-	    }
-	    if ($j - $i > 3) {
-		splice(@vals , $i, $j - $i, "$vals[$i] .. $vals[$j-1]");
-		splice(@cvals, $i, $j - $i, "$cvals[$i] .. $cvals[$j-1]");
-	    }
-	    $i++;
-	}
+        # can we use range operator to shorten the list?
+        my $i = 0;
+        while ($i < @vals) {
+            my $j = $i + 1;
+            my $v = $vals[$i];
+            while ($j < @vals) {
+                # XXX allow string increment too?
+                if ($v eq "0" || $v =~ /^-?[1-9]\d{0,9}\z/) {
+                    $v++;
+                }
+                elsif ($v =~ /^"([A-Za-z]{1,3}\d*)"\z/) {
+                    $v = $1;
+                    $v++;
+                    $v = qq("$v");
+                }
+                else {
+                    last;
+                }
+                last if $vals[$j] ne $v;
+                $j++;
+            }
+            if ($j - $i > 3) {
+                splice(@vals , $i, $j - $i, "$vals[$i] .. $vals[$j-1]");
+                splice(@cvals, $i, $j - $i, "$cvals[$i] .. $cvals[$j-1]");
+            }
+            $i++;
+        }
     }
     my $tmp = "@vals";
     if ($comment || (@vals > $indent_lim && (length($tmp) > 60 || $tmp =~ /\n/))) {
@@ -604,12 +610,12 @@ sub format_list
         $maxvlen = 80 if $maxvlen > 80;
         $maxvlen += length($INDENT);
 
-	my @res  = ("\n", $comment ? "$INDENT# $comment\n" : "");
-	my @cres = ("\n", $comment ? $INDENT._col("# $comment")."\n" : "");
-	my @elem  = @vals;
-	my @celem = @cvals;
-	for (@elem ) { s/^/$INDENT/gm; }
-	for (@celem) { s/^/$INDENT/gm; }
+        my @res  = ("\n", $comment ? "$INDENT# $comment\n" : "");
+        my @cres = ("\n", $comment ? $INDENT._col("# $comment")."\n" : "");
+        my @elem  = @vals;
+        my @celem = @cvals;
+        for (@elem ) { s/^/$INDENT/gm; }
+        for (@celem) { s/^/$INDENT/gm; }
         my $idxwidth = length(~~@elem);
         for my $i (0..$#elem) {
             my ($vlastline) = $elem[$i] =~ /(.*)\z/;
@@ -620,8 +626,15 @@ sub format_list
         }
         return (join("", @res), join("", @cres));
     } else {
-	return (join(", ", @vals), join(", ", @cvals));
+        return (join(", ", @vals), join(", ", @cvals));
     }
+}
+
+sub is_float {
+    my $val = shift;
+    my $ret = $val =~ m/^-?\d+\.\d+$/;
+
+    return $ret;
 }
 
 sub str {
@@ -639,9 +652,9 @@ sub str {
       }
       # Length protection because the RE engine will blow the stack [RT#33520]
       if (length($_) < 16 * 1024 && /^(.{2,5}?)\1*\z/s) {
-	  my $base   = quote($1);
-	  my $repeat = length($_)/length($1);
-	  return "($base x $repeat)";
+          my $base   = quote($1);
+          my $repeat = length($_)/length($1);
+          return "($base x $repeat)";
       }
       }
   }
@@ -655,13 +668,13 @@ sub str {
       # 17 bytes (not counting any require statement needed).
       # But on the other hand, hex is much more readable.
       if ($TRY_BASE64 && length($_[0]) > $TRY_BASE64 &&
-	  (defined &utf8::is_utf8 && !utf8::is_utf8($_[0])) &&
-	  eval { require MIME::Base64 })
+          (defined &utf8::is_utf8 && !utf8::is_utf8($_[0])) &&
+          eval { require MIME::Base64 })
       {
-	  $require{"MIME::Base64"}++;
-	  return "MIME::Base64::decode(\"" .
-	             MIME::Base64::encode($_[0],"") .
-		 "\")";
+          $require{"MIME::Base64"}++;
+          return "MIME::Base64::decode(\"" .
+                     MIME::Base64::encode($_[0],"") .
+                 "\")";
       }
       return "pack(\"H*\",\"" . unpack("H*", $_[0]) . "\")";
   }
@@ -805,3 +818,4 @@ color when in interactive terminal. This is consulted when C<$COLOR> is not set.
 L<Data::Dump>, L<JSON::Color>, L<YAML::Tiny::Color>
 
 =cut
+# vim: tabstop=4 shiftwidth=4 expandtab
