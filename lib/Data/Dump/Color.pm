@@ -15,7 +15,7 @@ $DEBUG = 0;
 
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
-use vars qw(%COLORS $COLOR $INDEX);
+use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH $INDEX);
 
 use Term::ANSIColor;
 require Win32::Console::ANSI if $^O =~ /Win/;
@@ -25,27 +25,59 @@ $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
 $INDEX = 1 unless defined $INDEX;
 
-%COLORS = (
-    Regexp  => 'yellow',
-    undef   => 'bright_red',
-    number  => 'bright_blue', # floats can have different color
-    float   => 'cyan',
-    string  => 'bright_yellow',
-    object  => 'bright_green',
-    glob    => 'bright_cyan',
-    key     => 'magenta',
-    comment => 'green',
-    keyword => 'blue',
-    symbol  => 'cyan',
-    linum   => 'black on_white', # file:line number
+%COLOR_THEMES = (
+    default16 => {
+        colors => {
+            Regexp  => 'yellow',
+            undef   => 'bright_red',
+            number  => 'bright_blue', # floats can have different color
+            float   => 'cyan',
+            string  => 'bright_yellow',
+            object  => 'bright_green',
+            glob    => 'bright_cyan',
+            key     => 'magenta',
+            comment => 'green',
+            keyword => 'blue',
+            symbol  => 'cyan',
+            linum   => 'black on_white', # file:line number
+        },
+    },
+    default256 => {
+        color_depth => 256,
+        colors => {
+            Regexp  => 135,
+            undef   => 124,
+            number  => 27,
+            float   => 51,
+            string  => 226,
+            object  => 10,
+            glob    => 10,
+            key     => 202,
+            comment => 34,
+            keyword => 21,
+            symbol  => 51,
+            linum   => 10,
+        },
+    },
 );
+
+$COLOR_THEME = ($ENV{TERM} // "") =~ /256/ ? 'default256' : 'default16';
+$COLOR_DEPTH = $COLOR_THEMES{$COLOR_THEME}{color_depth} // 16;
+%COLORS      = %{ $COLOR_THEMES{$COLOR_THEME}{colors} };
+
 my $_colreset = color('reset');
 sub _col {
     my ($col, $str) = @_;
+    my $colval = $COLORS{$col};
     if ($COLOR // $ENV{COLOR} // (-t STDOUT)) {
-        color($COLORS{$col}) . $str . $_colreset;
+        #say "D:col=$col, COLOR_DEPTH=$COLOR_DEPTH";
+        if ($COLOR_DEPTH >= 256 && $colval =~ /^\d+$/) {
+            return "\e[38;5;${colval}m" . $str . $_colreset;
+        } else {
+            return color($colval) . $str . $_colreset;
+        }
     } else {
-        $str;
+        return $str;
     }
 }
 
