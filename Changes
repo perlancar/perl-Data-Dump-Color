@@ -1,5 +1,11 @@
 Revision history for Data-Dump-Color
 
+0.17     2013-10-31 (SHARYANTO)
+
+         - Add color theme support (currently undocumented) and 256-color theme
+           from Scott Baker.
+
+
 0.16     2013-10-18 (SHARYANTO)
 
          - Colorize float differently, quote stringy numbers [suggested by Scott
