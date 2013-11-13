@@ -11,7 +11,7 @@ require Exporter;
 @EXPORT_OK = qw(dump pp dumpf quote);
 
 # VERSION
-$DEBUG = 0;
+$DEBUG = $ENV{DEBUG};
 
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
@@ -832,6 +832,10 @@ Whether to add array/hash index visual aid.
 
 If set, then will force color output on or off. By default, will only output
 color when in interactive terminal. This is consulted when C<$COLOR> is not set.
+
+=item * DEBUG
+
+Will be use to set the default for C<$DEBUG>.
 
 =back
 
