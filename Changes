@@ -1,5 +1,10 @@
 Revision history for Data-Dump-Color
 
+0.20     2013-11-13 (SHARYANTO)
+
+         - Remove debug statement (steven--).
+
+
 0.19     2013-11-13 (SHARYANTO)
 
          - Last fix broke other alignment, second try [reported by Scott Baker].
