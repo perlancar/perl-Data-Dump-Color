@@ -11,7 +11,7 @@ require Exporter;
 @EXPORT_OK = qw(dump pp dumpf quote);
 
 # VERSION
-$DEBUG = 0;
+$DEBUG = $ENV{DEBUG};
 
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
@@ -438,7 +438,7 @@ sub _dump
 	    push(@cvals, $cv);
 
             my ($vlastline) = $v =~ /(.*)\z/;
-            #say "DEBUG: v=<$v>, vlastline=<$vlastline>";
+            #say "DEBUG: v=<$v>, vlastline=<$vlastline>" if $DEBUG;
             my $lenvlastline = length($vlastline);
             push @lenvlastline, $lenvlastline;
 	}
@@ -499,7 +499,7 @@ sub _dump
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
             my $cpad = " " x ($maxkvlen - ($vmultiline ? -6+length($vpad) : length($key)) - $lenvlastline);
-            say "DEBUG: key=<$key>, vpad=<$vpad>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>";
+            #say "DEBUG: key=<$key>, vpad=<$vpad>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>" if $DEBUG;
             my $idxcomment = sprintf "# %s{%${idxwidth}i}", "." x @$idx, $i;
 	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
 	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && $INDEX ? " $cpad"._col(comment => $idxcomment) : "") . $nl;
