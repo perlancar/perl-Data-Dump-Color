@@ -438,7 +438,7 @@ sub _dump
 	    push(@cvals, $cv);
 
             my ($vlastline) = $v =~ /(.*)\z/;
-            #say "DEBUG: vlastline=<$vlastline>";
+            #say "DEBUG: v=<$v>, vlastline=<$vlastline>";
             my $lenvlastline = length($vlastline);
             push @lenvlastline, $lenvlastline;
 	}
@@ -492,12 +492,13 @@ sub _dump
 	    my $val  = shift @vals;
 	    my $cval = shift @cvals;
             my $lenvlastline = shift @lenvlastline;
-	    my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
+	    my $vmultiline = length($val) > $lenvlastline;
+            my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
 	    $val  =~ s/\n/\n$vpad/gm;
 	    $cval =~ s/\n/\n$vpad/gm;
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
-            my $cpad = " " x ($maxkvlen - length($key) - $lenvlastline);
+            my $cpad = " " x ($maxkvlen - ($vmultiline ? -4 : length($key)) - $lenvlastline); # 4 is for " => " which is not present if we have multiline
             #say "DEBUG: key=<$key>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>";
             my $idxcomment = sprintf "# %s{%${idxwidth}i}", "." x @$idx, $i;
 	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
