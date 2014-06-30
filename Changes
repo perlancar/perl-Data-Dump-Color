@@ -1,5 +1,14 @@
 Revision history for Data-Dump-Color
 
+0.21     2014-06-30 (SHARYANTO)
+
+         - No functional changes.
+
+         - Workaround for Scalar::Util 1.39 change to looks_like_number()
+           (booleanize the result). Use (temporary?) replacement
+           Scalar::Util::LooksLikeNumber.
+
+
 0.20     2013-11-13 (SHARYANTO)
 
          - Remove debug statement (steven--).
