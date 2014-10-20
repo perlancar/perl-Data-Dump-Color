@@ -1,5 +1,10 @@
 Revision history for Data-Dump-Color
 
+0.22    2014-10-20 (PERLANCAR)
+
+	- Add visual aid string length for long strings.
+
+
 0.21     2014-06-30 (SHARYANTO)
 
          - No functional changes.
