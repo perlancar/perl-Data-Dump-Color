@@ -1,5 +1,8 @@
 package Data::Dump::Color;
 
+# DATE
+# VERSION
+
 use 5.010001;
 use strict;
 use vars qw(@EXPORT @EXPORT_OK $VERSION $DEBUG);
@@ -10,12 +13,11 @@ require Exporter;
 @EXPORT = qw(dd ddx);
 @EXPORT_OK = qw(dump pp dumpf quote);
 
-# VERSION
 $DEBUG = $ENV{DEBUG};
 
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
-use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH $INDEX);
+use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH $INDEX $LENTHRESHOLD);
 
 use Term::ANSIColor;
 require Win32::Console::ANSI if $^O =~ /Win/;
@@ -24,6 +26,7 @@ use Scalar::Util::LooksLikeNumber qw(looks_like_number);
 $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
 $INDEX = 1 unless defined $INDEX;
+$LENTHRESHOLD = 500 unless defined $LENTHRESHOLD;
 
 %COLOR_THEMES = (
     default16 => {
@@ -500,9 +503,12 @@ sub _dump
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
             my $cpad = " " x ($maxkvlen - ($vmultiline ? -6+length($vpad) : length($key)) - $lenvlastline);
             #say "DEBUG: key=<$key>, vpad=<$vpad>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>" if $DEBUG;
-            my $idxcomment = sprintf "# %s{%${idxwidth}i}", "." x @$idx, $i;
-	    $out  .= "$kpad$key => $val," . ($nl && $INDEX ? " $cpad$idxcomment" : "") . $nl;
-	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && $INDEX ? " $cpad"._col(comment => $idxcomment) : "") . $nl;
+            my $visaid = "";
+            $visaid .= sprintf("%s{%${idxwidth}i}", "." x @$idx, $i) if $INDEX;
+            $visaid .= " klen=".length($key) if length($key) >= $LENTHRESHOLD;
+            $visaid .= " vlen=".length($val) if length($val) >= $LENTHRESHOLD;
+	    $out  .= "$kpad$key => $val," . ($nl && length($visaid) ? " $cpad# $visaid" : "") . $nl;
+	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && length($visaid) ? " $cpad"._col(comment => "# $visaid") : "") . $nl;
             $i++;
 	}
 	$out  =~ s/,$/ / unless $nl;
@@ -651,9 +657,11 @@ sub format_list
         for my $i (0..$#elem) {
             my ($vlastline) = $elem[$i] =~ /(.*)\z/;
             my $cpad = " " x ($maxvlen - length($vlastline));
-            my $idxcomment = sprintf "# %s[%${idxwidth}i]", "." x $extra->[0], $i;
-            push @res , $elem[ $i], ",", ($INDEX ? " $cpad$idxcomment" : ""), "\n";
-            push @cres, $celem[$i], ",", ($INDEX ? " $cpad"._col(comment => $idxcomment) : ""), "\n";
+            my $visaid = "";
+            $visaid .= sprintf("%s[%${idxwidth}i]", "." x $extra->[0], $i) if $INDEX;
+            $visaid .= " len=".length($elem[$i]) if length($elem[$i]) >= $LENTHRESHOLD;
+            push @res , $elem[ $i], ",", (length($visaid) ? " $cpad# $visaid" : ""), "\n";
+            push @cres, $celem[$i], ",", (length($visaid) ? " $cpad"._col(comment => "# $visaid") : ""), "\n";
         }
         return (join("", @res), join("", @cres));
     } else {
@@ -749,14 +757,17 @@ Use it like you would Data::Dump, e.g.:
 =head1 DESCRIPTION
 
 This module aims to be a drop-in replacement for L<Data::Dump>. It adds colors
-to dumps. For more information, see Data::Dump. This documentation explains
-what's different between this module and Data::Dump.
+to dumps. It also adds various visual aids in the comments, e.g. array/hash
+index, depth indicator, and so on.
+
+For more information, see Data::Dump. This documentation explains what's
+different between this module and Data::Dump.
 
 
 =head1 RESULTS
 
-By default Data::Dump::Color shows array indexes or hash pair sequence in
-comments for visual aid, e.g.:
+By default Data::Dump::Color shows array index or hash pair sequence in comments
+for visual aid, e.g.:
 
  [
    "this",      # [0]
@@ -821,6 +832,11 @@ Define colors.
 =item $INDEX => BOOL (default: 1)
 
 Whether to add array/hash index visual aid.
+
+=item $LENTHRESHOLD => int (default: 500)
+
+Add string length visual aid for hash key/hash value/array element if length
+is at least this value.
 
 =back
 
