@@ -139,6 +139,7 @@ sub dump
                                [0],
                                [map {defined($_->[1]) ? $_->[1] : "\$".$_->[0]} @dump ],
                                [map {defined($_->[1]) ? $_->[1] : "\$".$_->[0]} @cdump],
+                               \@_,
                            );
     $out  .= $f;
     $cout .= $cf;
@@ -390,12 +391,12 @@ sub _dump
             push @cvals, $cd;
 	    $i++;
 	}
-	my ($f, $cf) = format_list(1, $tied, [scalar(@$idx)], \@vals, \@cvals);
+	my ($f, $cf) = format_list(1, $tied, [scalar(@$idx)], \@vals, \@cvals, $rval);
         $out  = "[$f]";
         $cout = "[$cf]";
     }
     elsif ($type eq "HASH") {
-	my(@keys, @vals, @cvals);
+	my(@keys, @vals, @cvals, @origk, @origv);
 	my $tied = tied_str(tied(%$rval));
 
 	# statistics to determine variation in key lengths
@@ -430,6 +431,7 @@ sub _dump
         my @lenvlastline;
         for my $key (@orig_keys) {
 	    my $val = \$rval->{$key};  # capture value before we modify $key
+	    push(@origk, $key);
 	    $key = quote($key) if $quote;
 	    $kstat_max = length($key) if length($key) > $kstat_max;
 	    $kstat_sum += length($key);
@@ -439,6 +441,7 @@ sub _dump
             my ($v, $cv) = _dump($$val, $name, [@$idx, ["{$key}","{"._col(string=>$key)."}"]], $tied, $pclass, $pidx);
 	    push(@vals ,  $v);
 	    push(@cvals, $cv);
+	    push(@origv, $$val);
 
             my ($vlastline) = $v =~ /(.*)\z/;
             #say "DEBUG: v=<$v>, vlastline=<$vlastline>" if $DEBUG;
@@ -471,6 +474,9 @@ sub _dump
 		    push(@vals, sprintf("%.2f (%d/%.1f/%.1f)",
 					$stddev / $kstat_max,
 					$kstat_max, $avg, $stddev));
+		    push(@cvals, sprintf("%.2f (%d/%.1f/%.1f)",
+                                         $stddev / $kstat_max,
+                                         $kstat_max, $avg, $stddev));
 		}
 	    }
 	}
@@ -494,6 +500,8 @@ sub _dump
 	    my $key = shift(@keys);
 	    my $val  = shift @vals;
 	    my $cval = shift @cvals;
+	    my $origk = shift @origk;
+	    my $origv = shift @origv;
             my $lenvlastline = shift @lenvlastline;
 	    my $vmultiline = length($val) > $lenvlastline;
             my $vpad = $INDENT . (" " x ($klen_pad ? $klen_pad + 4 : 0));
@@ -505,8 +513,8 @@ sub _dump
             #say "DEBUG: key=<$key>, vpad=<$vpad>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>" if $DEBUG;
             my $visaid = "";
             $visaid .= sprintf("%s{%${idxwidth}i}", "." x @$idx, $i) if $INDEX;
-            $visaid .= " klen=".length($key) if length($key) >= $LENTHRESHOLD;
-            $visaid .= " vlen=".length($val) if length($val) >= $LENTHRESHOLD;
+            $visaid .= " klen=".length($origk) if length($origk) >= $LENTHRESHOLD;
+            $visaid .= " vlen=".length($origv) if length($origv) >= $LENTHRESHOLD;
 	    $out  .= "$kpad$key => $val," . ($nl && length($visaid) ? " $cpad# $visaid" : "") . $nl;
 	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && length($visaid) ? " $cpad"._col(comment => "# $visaid") : "") . $nl;
             $i++;
@@ -605,6 +613,7 @@ sub format_list
     my $indent_lim = $paren ? 0 : 1;
     my @vals  = @{ shift(@_) };
     my @cvals = @{ shift(@_) };
+    my @orig  = @{ shift(@_) };
 
     if (@vals > 3) {
 	# can we use range operator to shorten the list?
@@ -631,6 +640,7 @@ sub format_list
 	    if ($j - $i > 3) {
 		splice(@vals , $i, $j - $i, "$vals[$i] .. $vals[$j-1]");
 		splice(@cvals, $i, $j - $i, "$cvals[$i] .. $cvals[$j-1]");
+		splice(@orig , $i, $j - $i, [@orig[$i..$j-1]]);
 	    }
 	    $i++;
 	}
@@ -659,7 +669,7 @@ sub format_list
             my $cpad = " " x ($maxvlen - length($vlastline));
             my $visaid = "";
             $visaid .= sprintf("%s[%${idxwidth}i]", "." x $extra->[0], $i) if $INDEX;
-            $visaid .= " len=".length($elem[$i]) if length($elem[$i]) >= $LENTHRESHOLD;
+            $visaid .= " len=".length($orig[$i]) if length($orig[$i]) >= $LENTHRESHOLD;
             push @res , $elem[ $i], ",", (length($visaid) ? " $cpad# $visaid" : ""), "\n";
             push @cres, $celem[$i], ",", (length($visaid) ? " $cpad"._col(comment => "# $visaid") : ""), "\n";
         }
