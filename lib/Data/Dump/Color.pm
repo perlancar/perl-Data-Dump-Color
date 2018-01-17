@@ -1,3 +1,7 @@
+## no critic: Modules::ProhibitAutomaticExportation
+## no critic: BuiltinFunctions::RequireBlockGrep
+## no critic: ValuesAndExpressions::ProhibitCommaSeparatedStatements
+
 package Data::Dump::Color;
 
 # DATE
