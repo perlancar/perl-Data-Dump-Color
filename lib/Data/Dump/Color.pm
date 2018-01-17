@@ -509,6 +509,10 @@ sub _dump
 	    $cval =~ s/\n/\n$vpad/gm;
 	    my $kpad = $nl ? $INDENT : " ";
 	    $key .= " " x ($klen_pad - length($key)) if $nl;
+
+	    my $pad_len = ($klen_pad - length($key));
+	    if ($pad_len < 0) { $pad_len = 0; }
+	    $key .= " " x $pad_len if $nl;
             my $cpad = " " x ($maxkvlen - ($vmultiline ? -6+length($vpad) : length($key)) - $lenvlastline);
             #say "DEBUG: key=<$key>, vpad=<$vpad>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>" if $DEBUG;
             my $visaid = "";
