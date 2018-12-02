@@ -76,7 +76,17 @@ my $_colreset = color('reset');
 sub _col {
     my ($col, $str) = @_;
     my $colval = $COLORS{$col};
-    if ($COLOR // $ENV{COLOR} // (-t STDOUT)) {
+    my $enable_color = do {
+        if (defined $COLOR) {
+            $COLOR;
+        } elsif (exists $ENV{NO_COLOR}) {
+            0;
+        } else {
+            $ENV{COLOR} // (-t STDOUT) // 0;
+        }
+    };
+
+    if ($enable_color) {
         #say "D:col=$col, COLOR_DEPTH=$COLOR_DEPTH";
         if ($COLOR_DEPTH >= 256 && $colval =~ /^\d+$/) {
             return "\e[38;5;${colval}m" . $str . $_colreset;
@@ -862,6 +872,11 @@ is at least this value.
 =head1 ENVIRONMENT
 
 =over
+
+=item * NO_COLOR
+
+Can be used to disable color. Takes precedence over the C<COLOR> environment.
+See L<https://no-color.org> for more details.
 
 =item * COLOR
 
