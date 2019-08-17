@@ -522,8 +522,6 @@ sub _dump
 	    $val  =~ s/\n/\n$vpad/gm;
 	    $cval =~ s/\n/\n$vpad/gm;
 	    my $kpad = $nl ? $INDENT : " ";
-	    $key .= " " x ($klen_pad - length($key)) if $nl;
-
 	    my $pad_len = ($klen_pad - length($key));
 	    if ($pad_len < 0) { $pad_len = 0; }
 	    $key .= " " x $pad_len if $nl;
