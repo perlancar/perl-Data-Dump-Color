@@ -772,7 +772,7 @@ sub quote {
 1;
 # ABSTRACT: Like Data::Dump, but with color
 
-=for Pod::Coverage .+
+=for Pod::Coverage ^(dumpf|pp|quote|tied_str|fullname|format_list|str)$
 
 =head1 SYNOPSIS
 
@@ -834,6 +834,17 @@ To turn this off, set C<$INDEX> to 0:
      16 => "end",
    },
  ]
+
+
+=head1 FUNCTIONS
+
+Only L</dd> and L</ddx> are exported by default.
+
+=head2 dd
+
+=head2 ddx
+
+=head2 dump
 
 
 =head1 VARIABLES
