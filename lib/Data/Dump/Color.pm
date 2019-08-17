@@ -177,6 +177,7 @@ sub dump
 
 sub dd {
     print dump(@_), "\n";
+    @_;
 }
 
 sub ddx {
