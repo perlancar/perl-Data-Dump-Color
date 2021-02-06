@@ -39,3 +39,4 @@ say "# To disable color, set environment COLOR=0 or NO_COLOR=1 (which defeats th
 say "# To disable color, you can also use the NoColor color theme.";
 say "# To dump JSON/YAML data using this module, use the json2dd or yaml2dd script.";
 say "# To convert data dump to JSON/YAML, use the dd2json or dd2haml script.";
+say "# For more examples, see share/examples/ directory in the distribution.";
