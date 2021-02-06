@@ -1,3 +1,16 @@
+0.242   2021-02-06  Released-By: PERLANCAR; Urgency: medium
+
+	- [ux] Make dd() return the original arguments, like in Data::Dmp
+	  and XXX.
+
+	- Support color themes using ColorTheme specification. This eliminates
+          %COLORS.
+
+	- Add color theme: Light.
+
+        - Add demo script.
+
+
 0.241   2018-12-02  Released-By: PERLANCAR
 
 	- Observe NO_COLOR (see https://no-color.org).
