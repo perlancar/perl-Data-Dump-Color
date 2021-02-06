@@ -40,6 +40,9 @@ our $ct_obj;
 sub _col {
     require ColorThemeUtil::ANSI;
     my ($item, $str) = @_;
+
+    return $str unless $COLOR;
+
     my $ansi = '';
     my $item = $ct_obj->get_item_color($item);
     if (defined $item) {
