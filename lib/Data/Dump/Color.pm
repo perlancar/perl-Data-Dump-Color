@@ -821,9 +821,11 @@ Whether to force-enable or disable color. If unset, color output will be
 determined from C<$ENV{COLOR}> or when in interactive terminal (when C<-t
 STDOUT> is true).
 
-=item %COLORS => HASH (default: default colors)
+=item $COLOR_THEME => str
 
-Define colors.
+Select a color theme, which is a module under C<ColorTheme::Data::Dump::Color::>
+or C<ColorTheme::> namespace (with/without the namespace prefix). For example:
+C<Default256>, C<Bright>.
 
 =item $INDEX => BOOL (default: 1)
 
