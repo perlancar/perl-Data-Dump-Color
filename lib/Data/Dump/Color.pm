@@ -4,7 +4,9 @@
 
 package Data::Dump::Color;
 
+# AUTHORITY
 # DATE
+# DIST
 # VERSION
 
 use 5.010001;
@@ -21,9 +23,8 @@ $DEBUG = $ENV{DEBUG};
 
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
-use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH $INDEX $LENTHRESHOLD);
+use vars qw($COLOR $COLOR_THEME $INDEX $LENTHRESHOLD);
 
-use Term::ANSIColor;
 require Win32::Console::ANSI if $^O =~ /Win/;
 use Scalar::Util::LooksLikeNumber qw(looks_like_number);
 
@@ -32,80 +33,37 @@ $INDENT = "  " unless defined $INDENT;
 $INDEX = 1 unless defined $INDEX;
 $LENTHRESHOLD = 500 unless defined $LENTHRESHOLD;
 
-%COLOR_THEMES = (
-    default16 => {
-        colors => {
-            Regexp  => 'yellow',
-            undef   => 'bright_red',
-            number  => 'bright_blue', # floats can have different color
-            float   => 'cyan',
-            string  => 'bright_yellow',
-            object  => 'bright_green',
-            glob    => 'bright_cyan',
-            key     => 'magenta',
-            comment => 'green',
-            keyword => 'blue',
-            symbol  => 'cyan',
-            linum   => 'black on_white', # file:line number
-        },
-    },
-    default256 => {
-        color_depth => 256,
-        colors => {
-            Regexp  => 135,
-            undef   => 124,
-            number  => 27,
-            float   => 51,
-            string  => 226,
-            object  => 10,
-            glob    => 10,
-            key     => 202,
-            comment => 34,
-            keyword => 21,
-            symbol  => 51,
-            linum   => 10,
-        },
-    },
-);
+$COLOR_THEME = $ENV{DATA_DUMP_COLOR_THEME} //
+    (($ENV{TERM} // "") =~ /256/ ? 'Default256' : 'Default16');
+our $ct_obj;
 
-$COLOR_THEME = ($ENV{TERM} // "") =~ /256/ ? 'default256' : 'default16';
-$COLOR_DEPTH = $COLOR_THEMES{$COLOR_THEME}{color_depth} // 16;
-%COLORS      = %{ $COLOR_THEMES{$COLOR_THEME}{colors} };
-
-my $_colreset = color('reset');
 sub _col {
-    my ($col, $str) = @_;
-    my $colval = $COLORS{$col};
-    my $enable_color = do {
-        if (defined $COLOR) {
-            $COLOR;
-        } elsif (exists $ENV{NO_COLOR}) {
-            0;
-        } else {
-            $ENV{COLOR} // (-t STDOUT) // 0;
-        }
-    };
-
-    if ($enable_color) {
-        #say "D:col=$col, COLOR_DEPTH=$COLOR_DEPTH";
-        if ($COLOR_DEPTH >= 256 && $colval =~ /^\d+$/) {
-            return "\e[38;5;${colval}m" . $str . $_colreset;
-        } else {
-            return color($colval) . $str . $_colreset;
-        }
+    require ColorThemeUtil::ANSI;
+    my ($item, $str) = @_;
+    my $ansi = '';
+    my $item = $ct_obj->get_item_color($item);
+    if (defined $item) {
+        $ansi = ColorThemeUtil::ANSI::item_color_to_ansi($item);
+    }
+    if (length $ansi) {
+        $ansi . $str . "\e[0m";
     } else {
-        return $str;
+        $str;
     }
 }
 
 sub dump
 {
+    require Module::Load::Util;
+
     local %seen;
     local %refcnt;
     local %require;
     local @fixup;
     local @cfixup;
 
+    local $ct_obj = Module::Load::Util::instantiate_class_with_optional_args(
+        {ns_prefixes=>['ColorTheme::Data::Dump::Color','ColorTheme','']}, $COLOR_THEME);
     require Data::Dump::FilterContext if @FILTERS;
 
     my $name = "a";
@@ -882,6 +840,11 @@ is at least this value.
 =head1 ENVIRONMENT
 
 =over
+
+=item * DATA_DUMP_COLOR_THEME
+
+Set color theme. Name will be searched under C<ColorTheme::Data::Dump::Color::*>
+or C<ColorTheme::*>.
 
 =item * NO_COLOR
 
