@@ -10,7 +10,7 @@ package Data::Dump::Color;
 # VERSION
 
 use 5.010001;
-use strict;
+use strict 'subs', 'vars';
 use vars qw(@EXPORT @EXPORT_OK $VERSION $DEBUG);
 use subs qq(dump);
 
@@ -26,7 +26,19 @@ use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
 use vars qw($COLOR $COLOR_THEME $INDEX $LENTHRESHOLD);
 
 require Win32::Console::ANSI if $^O =~ /Win/;
-use Scalar::Util::LooksLikeNumber qw(looks_like_number);
+#eval {
+#    require Scalar::Util::Numeric;
+#    *isnum   = \&Scalar::Util::Numeric::isnum;
+#    *isfloat = \&Scalar::Util::Numeric::isfloat;
+#    *isint   = \&Scalar::Util::Numeric::isint;
+#    1;
+#} or do {
+#    require Scalar::Util::Numeric::PP;
+#    *isnum   = \&Scalar::Util::Numeric::PP::isnum;
+#    *isfloat = \&Scalar::Util::Numeric::PP::isfloat;
+#    *isint   = \&Scalar::Util::Numeric::PP::isint;
+#};
+use Scalar::Util qw(looks_like_number);
 
 $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
@@ -305,9 +317,12 @@ sub _dump
 		$out  = 'undef';
 		$cout = _col('undef', "undef");
 	    }
-	    elsif (my $ntype = looks_like_number($$rval)) {
-		my $val = $ntype < 20 ? qq("$$rval") : $$rval;
-                my $col = $ntype =~ /^(5|13|8704)$/ ? "float":"number";
+	    elsif (looks_like_number($$rval)) {
+                #my $isfloat_or_int = isfloat($$rval) || isint($$rval);
+		#my $val = $isfloat_or_int ? $$rval : qq("$$rval");
+                #my $col = $isfloat_or_int ? "float":"number";
+                my $val = $$rval;
+                my $col = "number";
                 $out  = $val;
 		$cout = _col($col => $val);
 	    }
