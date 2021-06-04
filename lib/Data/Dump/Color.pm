@@ -54,7 +54,7 @@ sub _col {
     return $str unless $COLOR;
 
     my $ansi = '';
-    my $item = $ct_obj->get_item_color($item);
+    $item = $ct_obj->get_item_color($item);
     if (defined $item) {
         $ansi = ColorThemeUtil::ANSI::item_color_to_ansi($item);
     }
