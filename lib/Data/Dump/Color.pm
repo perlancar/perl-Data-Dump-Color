@@ -11,8 +11,9 @@ package Data::Dump::Color;
 
 use 5.010001;
 use strict 'subs', 'vars';
-use vars qw(@EXPORT @EXPORT_OK $VERSION $DEBUG);
 use subs qq(dump);
+use vars qw(@EXPORT @EXPORT_OK $VERSION $DEBUG);
+use warnings;
 
 require Exporter;
 *import = \&Exporter::import;
