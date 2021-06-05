@@ -43,7 +43,8 @@ $TRY_BASE64 = 50 unless defined $TRY_BASE64;
 $INDENT = "  " unless defined $INDENT;
 $INDEX = 1 unless defined $INDEX;
 $LENTHRESHOLD = 500 unless defined $LENTHRESHOLD;
-$COLOR = $ENV{COLOR} // (-t STDOUT) // 1;
+$COLOR = (defined $ENV{NO_COLOR} ? 0 : undef) //
+    $ENV{COLOR} // (-t STDOUT) // 1;
 $COLOR_THEME = $ENV{DATA_DUMP_COLOR_THEME} //
     (($ENV{TERM} // "") =~ /256/ ? 'Default256' : 'Default16');
 our $ct_obj;
