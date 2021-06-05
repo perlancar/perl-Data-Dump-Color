@@ -3,7 +3,7 @@
 	- Enable warnings, since vars.pm requires warnings.pm anyway, so no
 	  startup-time saving was accomplished.
 
-	- Avoid warning caused by duplicate declaration (GH#4).
+	- Avoid warning caused by duplicate declaration (GH#10).
 
 
 0.243   2021-02-13  Released-By: PERLANCAR; Urgency: medium
