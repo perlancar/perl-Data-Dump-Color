@@ -898,9 +898,9 @@ off, you can set environment COLOR to 0, or C<$Data::Dump::Color::COLOR> to 0.
 
 =head2 How do I customize colors?
 
-Fiddle the colors in C<%Data::Dump::Color::COLORS>. There will probably be
-proper color theme support in the future (based on
-L<SHARYANTO::Role::ColorTheme>.
+Create a color theme and give it a name under
+C<ColorTheme::Data::Dump::Color::*>. See an existing color theme for example,
+e.g. L<ColorTheme::Data::Dump::Color::Default256>.
 
 
 =head1 SEE ALSO
