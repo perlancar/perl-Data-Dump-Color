@@ -513,8 +513,8 @@ sub _dump
             #say "DEBUG: key=<$key>, vpad=<$vpad>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>" if $DEBUG;
             my $visaid = "";
             $visaid .= sprintf("%s{%${idxwidth}i}", "." x @$idx, $i) if $INDEX;
-            $visaid .= " klen=".length($origk) if length($origk) >= $LENTHRESHOLD;
-            $visaid .= " vlen=".length($origv) if length($origv) >= $LENTHRESHOLD;
+            $visaid .= " klen=".length($origk) if defined $origk && length($origk) >= $LENTHRESHOLD;
+            $visaid .= " vlen=".length($origv) if defined $origv && length($origv) >= $LENTHRESHOLD;
 	    $out  .= "$kpad$key => $val," . ($nl && length($visaid) ? " $cpad# $visaid" : "") . $nl;
 	    $cout .= $kpad._col(key=>$key)." => $cval,".($nl && length($visaid) ? " $cpad"._col(comment => "# $visaid") : "") . $nl;
             $i++;
