@@ -843,8 +843,8 @@ Additional variables include:
 =item $COLOR => BOOL (default: undef)
 
 Whether to force-enable or disable color. If unset, color output will be
-determined from C<$ENV{COLOR}> or when in interactive terminal (when C<-t
-STDOUT> is true).
+determined from L</NO_COLOR>, L</COLOR> environment variables, or whether
+running in interactive terminal (when C<-t STDOUT> is true).
 
 =item $COLOR_THEME => str
 
@@ -866,24 +866,20 @@ is at least this value.
 
 =head1 ENVIRONMENT
 
-=over
-
-=item * DATA_DUMP_COLOR_THEME
+=head2 DATA_DUMP_COLOR_THEME
 
 Set color theme. Name will be searched under C<ColorTheme::Data::Dump::Color::*>
 or C<ColorTheme::*>.
 
-=item * NO_COLOR
+=head2 NO_COLOR
 
 Can be used to disable color. Takes precedence over the C<COLOR> environment.
 See L<https://no-color.org> for more details.
 
-=item * COLOR
+=head2 COLOR
 
 If set, then will force color output on or off. By default, will only output
 color when in interactive terminal. This is consulted when C<$COLOR> is not set.
-
-=back
 
 
 =head1 FAQ
