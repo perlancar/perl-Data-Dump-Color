@@ -603,8 +603,8 @@ sub fullname
 	    $cname .= $i->[1];
 	    $last_was_index++;
 	} else {
-	    $name  .= "->" unless $last_was_index++;
-	    $cname .= "->" unless $last_was_index++;
+	    $name  .= "->";
+	    $cname .= "->";
 	    $name  .= $i->[0];
 	    $cname .= $i->[1];
 	}
