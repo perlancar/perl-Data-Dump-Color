@@ -49,6 +49,15 @@ $COLOR_THEME = $ENV{DATA_DUMP_COLOR_THEME} //
     (($ENV{TERM} // "") =~ /256/ ? 'Default256' : 'Default16');
 our $ct_obj;
 
+# from List::Util::PP
+sub max {
+    return undef unless @_;
+    my $max = shift;
+    $_ > $max and $max = $_
+        foreach @_;
+    return $max;
+}
+
 sub _col {
     require ColorThemeUtil::ANSI;
     my ($item, $str) = @_;
@@ -509,7 +518,7 @@ sub _dump
 	    my $pad_len = ($klen_pad - length($key));
 	    if ($pad_len < 0) { $pad_len = 0; }
 	    $key .= " " x $pad_len if $nl;
-            my $cpad = " " x ($maxkvlen - ($vmultiline ? -6+length($vpad) : length($key)) - $lenvlastline);
+            my $cpad = " " x max(0, $maxkvlen - ($vmultiline ? -6+length($vpad) : length($key)) - $lenvlastline);
             #say "DEBUG: key=<$key>, vpad=<$vpad>, val=<$val>, lenvlastline=<$lenvlastline>, cpad=<$cpad>" if $DEBUG;
             my $visaid = "";
             $visaid .= sprintf("%s{%${idxwidth}i}", "." x @$idx, $i) if $INDEX;
@@ -666,10 +675,10 @@ sub format_list
         my $idxwidth = length(~~@elem);
         for my $i (0..$#elem) {
             my ($vlastline) = $elem[$i] =~ /(.*)\z/;
-            my $cpad = " " x ($maxvlen - length($vlastline));
+            my $cpad = " " x max(0, $maxvlen - length($vlastline));
             my $visaid = "";
             $visaid .= sprintf("%s[%${idxwidth}i]", "." x $extra->[0], $i) if $INDEX;
-            $visaid .= " len=".length($orig[$i]) if length($orig[$i]) >= $LENTHRESHOLD;
+            $visaid .= " len=".length($orig[$i]) if defined $orig[$i] && length($orig[$i]) >= $LENTHRESHOLD;
             push @res , $elem[ $i], ",", (length($visaid) ? " $cpad# $visaid" : ""), "\n";
             push @cres, $celem[$i], ",", (length($visaid) ? " $cpad"._col(comment => "# $visaid") : ""), "\n";
         }
