@@ -90,7 +90,7 @@ sub dump
         {ns_prefixes=>['ColorTheme::Data::Dump::Color','ColorTheme','']}, $COLOR_THEME);
     require Data::Dump::FilterContext if @FILTERS;
 
-    my $name = "a";
+    my $name = "var";
     my @dump;
     my @cdump;
 
@@ -267,9 +267,10 @@ sub _dump
                 "do{my \$fix}",
                 _col(keyword=>"do")."{"._col(keyword=>"my")." "._col(symbol=>"\$fix")."}",
             ) if @$idx && $idx->[-1] eq '$';
-	    return (
-                "'fix'",
-                _col(string => "'fix'"),
+	    my $str = squote($sref);
+            return (
+                $str,
+                _col(string => $str),
             );
 	}
 	$seen{$id} = [$name, $idx];
@@ -759,6 +760,13 @@ sub quote {
   s/([^\040-\176])/sprintf('\\x{%X}',ord($1))/eg;
 
   return qq("$_");
+}
+
+# put a string value in single quotes
+sub squote {
+    local($_) = $_[0];
+    s/([\\'])/\\$1/g;
+    return qq('$_');
 }
 
 1;
