@@ -1,3 +1,10 @@
+0.248   2021-06-24  Released-By: PERLANCAR; Urgency: low
+
+	- No functional changes.
+
+	- [doc] Add sample screenshots.
+
+
 0.247   2021-06-24  Released-By: PERLANCAR; Urgency: medium
 
 	- [bugfix] Fix referring to variable in circular reference fixup.
