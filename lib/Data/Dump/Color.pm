@@ -772,7 +772,7 @@ sub squote {
 1;
 # ABSTRACT: Like Data::Dump, but with color
 
-=for Pod::Coverage ^(dumpf|pp|quote|tied_str|fullname|format_list|str|looks_like_number|max)$
+=for Pod::Coverage ^(dumpf|pp|quote|squote|tied_str|fullname|format_list|str|looks_like_number|max)$
 
 =head1 SYNOPSIS
 
