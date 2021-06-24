@@ -783,6 +783,12 @@ Use it like you would Data::Dump, e.g.:
 
 =head1 DESCRIPTION
 
+Sample screenshot:
+
+# IMAGE: share/images/Screenshot_20210624_071713.png
+
+# IMAGE: share/images/Screenshot_20210624_071341.png
+
 This module aims to be a drop-in replacement for L<Data::Dump>. It adds colors
 to dumps. It also adds various visual aids in the comments, e.g. array/hash
 index, depth indicator, and so on.
