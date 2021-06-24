@@ -38,7 +38,7 @@ say "# To set color theme, you can set DATA_DUMP_COLOR_THEME environment. To lis
 say "# To disable color, set environment COLOR=0 or NO_COLOR=1 (which defeats the purpose of this module but migh tbe useful at times.";
 say "# To disable color, you can also use the NoColor color theme.";
 say "# To dump JSON/YAML data using this module, use the json2dd or yaml2dd script.";
-say "# To convert data dump to JSON/YAML, use the dd2json or dd2haml script.";
+say "# To convert data dump to JSON/YAML, use the dd2json or dd2yaml script.";
 say "# For more examples, see share/examples/ directory in the distribution.";
 
 # ABSTRACT: Demo for Data::Dump::Color
