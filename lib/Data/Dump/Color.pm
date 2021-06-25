@@ -783,7 +783,7 @@ Use it like you would Data::Dump, e.g.:
 
 =head1 DESCRIPTION
 
-Sample screenshot:
+Sample screenshots:
 
 # IMAGE: share/images/Screenshot_20210624_071713.png
 
