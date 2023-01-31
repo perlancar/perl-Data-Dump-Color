@@ -59,10 +59,15 @@ sub max {
 }
 
 sub _col {
+    require Module::Load::Util;
     require ColorThemeUtil::ANSI;
+
     my ($item, $str) = @_;
 
     return $str unless $COLOR;
+
+    local $ct_obj = Module::Load::Util::instantiate_class_with_optional_args(
+        {ns_prefixes=>['ColorTheme::Data::Dump::Color','ColorTheme','']}, $COLOR_THEME);
 
     my $ansi = '';
     $item = $ct_obj->get_item_color($item);
