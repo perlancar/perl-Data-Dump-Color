@@ -1,4 +1,4 @@
-#!perl -T
+#!perl
 
 use 5.010;
 use strict;
@@ -19,8 +19,30 @@ subtest dump => sub {
 }));
 };
 
+my $orig = $Data::Dump::Color::COLOR;
+$Data::Dump::Color::COLOR = 1; # Force color on for these tests
+
+is(sub_has_errors('dd')  , "", "dd() runs");
+is(sub_has_errors('ddx') , "", "ddx() runs");
+is(sub_has_errors('dump'), "", "dump() runs");
+
+$Data::Dump::Color::COLOR = $orig;
+
 DONE_TESTING:
 done_testing;
+
+# Returns any syntax error if found, or "" on success
+sub sub_has_errors {
+	no strict "refs";
+	my $sub_name = shift();
+
+	eval { &$sub_name(); };
+
+	my $err = $@;
+	$err =~ s/\s+$//;
+
+	return $err;
+}
 
 __END__
 # disabled for now
