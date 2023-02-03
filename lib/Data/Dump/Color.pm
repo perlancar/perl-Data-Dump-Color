@@ -58,11 +58,19 @@ sub max {
     return $max;
 }
 
+sub _get_color_theme_obj {
+    require Module::Load::Util;
+    Module::Load::Util::instantiate_class_with_optional_args(
+        {ns_prefixes=>['ColorTheme::Data::Dump::Color','ColorTheme','']}, $COLOR_THEME);
+}
+
 sub _col {
     require ColorThemeUtil::ANSI;
     my ($item, $str) = @_;
 
     return $str unless $COLOR;
+
+    local $ct_obj = _get_color_theme_obj() unless defined $ct_obj;
 
     my $ansi = '';
     $item = $ct_obj->get_item_color($item);
@@ -78,16 +86,13 @@ sub _col {
 
 sub dump
 {
-    require Module::Load::Util;
-
     local %seen;
     local %refcnt;
     local %require;
     local @fixup;
     local @cfixup;
 
-    local $ct_obj = Module::Load::Util::instantiate_class_with_optional_args(
-        {ns_prefixes=>['ColorTheme::Data::Dump::Color','ColorTheme','']}, $COLOR_THEME);
+    local $ct_obj = _get_color_theme_obj() if $COLOR && !(defined $ct_obj);
     require Data::Dump::FilterContext if @FILTERS;
 
     my $name = "var";
@@ -165,8 +170,9 @@ sub dd {
 sub ddx {
     my(undef, $file, $line) = caller;
     $file =~ s,.*[\\/],,;
-    my $out = _col(linum=>"$file:$line: ") . dump(@_) . "\n";
+    my $out = dump(@_) . "\n";
     $out =~ s/^/# /gm;
+    $out = _col(linum=>"$file:$line: ") . $out;
     print $out;
 }
 
