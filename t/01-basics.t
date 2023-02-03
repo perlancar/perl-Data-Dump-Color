@@ -13,36 +13,42 @@ local $Data::Dump::Color::COLOR = 0;
 local $Data::Dump::Color::COLOR_THEME = "Default16";
 
 subtest dump => sub {
-    lives_ok { dump([1]) };
+    lives_ok { my $foo = dump([1]) };
 
     is_deeply(dump([1, 2, 3]), "[1, 2, 3]");
+
+    # test circular ref
     my $var = [0,1,[],3]; $var->[1] = $var->[2];
     is_deeply(dump($var), q(do {
   my $var = [0, [], '$var->[1]', 3];
   $var->[2] = $var->[1];
   $var;
 }));
+
+    # test scalar ref
+    is_deeply(dump(\1), "\\1");
+
+    # test object with scalar ref
+    my $ref = \\2;
+    my $obj = bless $ref, "MyClass";
+    is_deeply(dump($obj), q<bless(do{\(my $o = \2)}, "MyClass")>);
 };
 
 subtest dd => sub {
     my ($stdout, $stderr, $exit);
     lives_ok {
-        ($stdout, $stderr, $exit) = capture { dd [1] };
+        ($stdout, $stderr, $exit) = capture { dd [3] };
     };
-    like($stdout, qr/\A\Q[1]\E/);
+    like($stdout, qr/\A\Q[3]\E/);
 };
 
 subtest ddx => sub {
     my ($stdout, $stderr, $exit);
     lives_ok {
-        ($stdout, $stderr, $exit) = capture { ddx [1] };
+        ($stdout, $stderr, $exit) = capture { ddx [4] };
     };
-    like($stdout, qr/\Q01-basics.t\E:.*\Q[1]\E/);
+    like($stdout, qr/\Q01-basics.t\E:.*\Q[4]\E/);
 };
 
 DONE_TESTING:
 done_testing;
-
-__END__
-# disabled for now
-is(dd([1, 2, 3]), "[1, 2, 3]\n", "[1, 2, 3]");
