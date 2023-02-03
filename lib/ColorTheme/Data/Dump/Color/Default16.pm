@@ -1,12 +1,13 @@
 package ColorTheme::Data::Dump::Color::Default16;
 
+use strict;
+use parent 'ColorThemeBase::Static::FromStructColors';
+use Term::ANSIColor;
+
 # AUTHORITY
 # DATE
 # DIST
 # VERSION
-
-use parent 'ColorThemeBase::Static::FromStructColors';
-use Term::ANSIColor;
 
 sub _ansi16 {
     my ($fg, $bg) = @_;

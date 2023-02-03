@@ -1,11 +1,12 @@
 package ColorTheme::Data::Dump::Color::Default256;
 
+use strict;
+use parent 'ColorThemeBase::Static::FromStructColors';
+
 # AUTHORITY
 # DATE
 # DIST
 # VERSION
-
-use parent 'ColorThemeBase::Static::FromStructColors';
 
 sub _ansi256fg {
     my $code = shift;

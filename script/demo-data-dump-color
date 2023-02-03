@@ -1,15 +1,15 @@
 #!perl
 
-# AUTHORITY
-# DATE
-# DIST
-# VERSION
-
 use 5.010001;
 use strict;
 use warnings;
 
 use Data::Dump::Color;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
 
 my $data = {
     undef => undef,
