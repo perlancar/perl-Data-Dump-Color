@@ -4,11 +4,6 @@
 
 package Data::Dump::Color;
 
-# AUTHORITY
-# DATE
-# DIST
-# VERSION
-
 use 5.010001;
 use strict 'subs', 'vars';
 use subs qq(dump);
@@ -20,13 +15,19 @@ require Exporter;
 @EXPORT = qw(dd ddx);
 @EXPORT_OK = qw(dump pp dumpf quote);
 
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
 $DEBUG = $ENV{DEBUG};
 
 use overload ();
 use vars qw(%seen %refcnt @fixup @cfixup %require $TRY_BASE64 @FILTERS $INDENT);
 use vars qw($COLOR $COLOR_THEME $INDEX $LENTHRESHOLD);
 
-require Win32::Console::ANSI if $^O =~ /Win/;
+require # hide from cpanspec
+    Win32::Console::ANSI if $^O =~ /Win/;
 
 my $lan_available;
 eval {
